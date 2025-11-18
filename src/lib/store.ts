@@ -13,6 +13,7 @@ interface AuthState {
   isAuthenticated: boolean;
   login: (user: User, token: string) => void;
   logout: () => void;
+  setToken: (token: string | null) => void;
 }
 
 interface LanguageState {
@@ -33,6 +34,19 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         localStorage.removeItem('authToken');
         set({ user: null, token: null, isAuthenticated: false });
+      },
+      setToken: (token) => {
+        try {
+          if (token) {
+            localStorage.setItem('authToken', token);
+            set({ token, isAuthenticated: true });
+          } else {
+            localStorage.removeItem('authToken');
+            set({ user: null, token: null, isAuthenticated: false });
+          }
+        } catch (e) {
+          // no-op
+        }
       },
     }),
     {
