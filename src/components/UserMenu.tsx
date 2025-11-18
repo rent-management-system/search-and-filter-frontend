@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { LogOut, LayoutDashboard } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -11,14 +10,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/lib/store';
 
-export const UserMenu = () => {
+interface UserMenuProps {
+  onDashboardClick?: () => void;
+}
+
+export const UserMenu = ({ onDashboardClick }: UserMenuProps) => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -41,7 +43,7 @@ export const UserMenu = () => {
           </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate('/dashboard')} className="cursor-pointer">
+        <DropdownMenuItem onClick={onDashboardClick} className="cursor-pointer">
           <LayoutDashboard className="mr-2 h-4 w-4" />
           {t('nav.dashboard')}
         </DropdownMenuItem>
