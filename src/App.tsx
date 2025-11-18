@@ -3,12 +3,14 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import { toast } from 'sonner';
 import i18n from '@/lib/i18n';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
 import { useAuthStore } from '@/lib/store';
 
 const queryClient = new QueryClient({
@@ -55,13 +57,18 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner position="top-right" />
-          <div id="bd" className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              <Index />
-            </main>
-            <Footer />
-          </div>
+          <BrowserRouter>
+            <div id="bd" className="min-h-screen flex flex-col">
+              <Header />
+              <main className="flex-1">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+          </BrowserRouter>
         </TooltipProvider>
       </I18nextProvider>
     </QueryClientProvider>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { User, LogOut, LayoutDashboard } from 'lucide-react';
 import {
   DropdownMenu,
@@ -12,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 export const Header: React.FC = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
 
   const toggleNav = () => setIsNavOpen((s) => !s);
   const closeNav = () => setIsNavOpen(false);
@@ -35,12 +37,8 @@ export const Header: React.FC = () => {
   };
 
   const handleDashboard = () => {
-    // Scroll to dashboard section if present
-    const el = document.getElementById('dashboard');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setIsNavOpen(false);
-    }
+    navigate('/dashboard');
+    setIsNavOpen(false);
   };
 
   const scrollToSection = (id: string) => {
