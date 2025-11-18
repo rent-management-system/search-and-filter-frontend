@@ -12,6 +12,7 @@ import { Footer } from '@/components/Footer';
 import Index from "./pages/Index";
 import Dashboard from "@/pages/Dashboard";
 import { useAuthStore } from '@/lib/store';
+import AuthCallback from '@/pages/AuthCallback';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,6 +64,7 @@ const App = () => {
               <main className="flex-1">
                 <Routes>
                   <Route path="/" element={<Index />} />
+                  <Route path="/auth/callback" element={<AuthCallback />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                 </Routes>
               </main>

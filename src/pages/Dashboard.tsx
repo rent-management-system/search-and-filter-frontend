@@ -19,10 +19,27 @@ const Dashboard = () => {
   // Decode JWT for user panel
   const jwt = useMemo(() => decodeJwt(localStorage.getItem('authToken')), []);
 
-  // Browse all properties (tenant view)
-  const { data: properties, isLoading: propertiesLoading } = useQuery({
-    queryKey: ['dashboard-properties'],
-    queryFn: () => propertyAPI.search({}),
+  // Manual search filters (Adama-only service)
+  const [filters, setFilters] = useState({
+    min_price: '',
+    max_price: '',
+    house_type: '',
+    amenities: [] as string[],
+    max_distance_km: 20,
+    sort_by: 'distance',
+  });
+
+  // Browse properties (tenant view) with filters
+  const { data: properties, isLoading: propertiesLoading, refetch: refetchProperties } = useQuery({
+    queryKey: ['dashboard-properties', filters],
+    queryFn: () => propertyAPI.search({
+      min_price: filters.min_price ? Number(filters.min_price) : undefined,
+      max_price: filters.max_price ? Number(filters.max_price) : undefined,
+      house_type: filters.house_type || undefined,
+      amenities: filters.amenities.length ? filters.amenities : undefined,
+      max_distance_km: filters.max_distance_km,
+      sort_by: filters.sort_by,
+    }),
     enabled: HAS_PROPERTY_SEARCH,
   });
 
@@ -207,7 +224,7 @@ const Dashboard = () => {
           </Card>
         </motion.section>
 
-        {/* Main Content Tabs */}
+        {/* Main Content Tabs */
         <motion.div variants={itemVariants}>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
             <TabsList className={`grid w-full max-w-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg ${
@@ -234,6 +251,126 @@ const Dashboard = () => {
             {/* Browse Properties Tab */}
             {HAS_PROPERTY_SEARCH && (
               <TabsContent value="browse" className="space-y-6">
+                {/* Manual Search UI (distinct from AI) */}
+                <Card className="border-0 shadow-lg">
+                  <CardContent className="pt-6">
+                    <div className="grid md:grid-cols-4 gap-4">
+                      {/* House Type */}
+                      <div>
+                        <label className="block text-sm font-medium mb-1">House Type</label>
+                        <select
+                          className="w-full h-10 rounded-md border bg-background"
+                          value={filters.house_type}
+                          onChange={(e) => setFilters({ ...filters, house_type: e.target.value })}
+                        >
+                          <option value="">Any</option>
+                          <option value="apartment">Apartment</option>
+                          <option value="house">House</option>
+                          <option value="villa">Villa</option>
+                          <option value="studio">Studio</option>
+                        </select>
+                      </div>
+                      {/* Min Price */}
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Min Price (ETB)</label>
+                        <input
+                          type="number"
+                          className="w-full h-10 rounded-md border bg-background px-3"
+                          value={filters.min_price}
+                          onChange={(e) => setFilters({ ...filters, min_price: e.target.value })}
+                          placeholder="e.g., 5000"
+                        />
+                      </div>
+                      {/* Max Price */}
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Max Price (ETB)</label>
+                        <input
+                          type="number"
+                          className="w-full h-10 rounded-md border bg-background px-3"
+                          value={filters.max_price}
+                          onChange={(e) => setFilters({ ...filters, max_price: e.target.value })}
+                          placeholder="e.g., 20000"
+                        />
+                      </div>
+                      {/* Sort By */}
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Sort By</label>
+                        <select
+                          className="w-full h-10 rounded-md border bg-background"
+                          value={filters.sort_by}
+                          onChange={(e) => setFilters({ ...filters, sort_by: e.target.value })}
+                        >
+                          <option value="distance">Distance</option>
+                          <option value="price">Price</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Amenities + Distance */}
+                    <div className="grid md:grid-cols-2 gap-4 mt-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Amenities</label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {['wifi','parking','security','water','balcony','garden'].map((a) => (
+                            <label key={a} className="flex items-center gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                checked={filters.amenities.includes(a)}
+                                onChange={(e) => {
+                                  const next = e.target.checked
+                                    ? [...filters.amenities, a]
+                                    : filters.amenities.filter((x) => x !== a);
+                                  setFilters({ ...filters, amenities: next });
+                                }}
+                              />
+                              <span className="capitalize">{a}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Max Distance (km): {filters.max_distance_km}</label>
+                        <input
+                          type="range"
+                          min={1}
+                          max={30}
+                          step={1}
+                          value={filters.max_distance_km}
+                          onChange={(e) => setFilters({ ...filters, max_distance_km: Number(e.target.value) })}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                      <Button onClick={() => refetchProperties()} className="sm:w-auto">
+                        Search
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={async () => {
+                          try {
+                            await propertyAPI.saveSearch({
+                              location: 'Adama',
+                              min_price: filters.min_price ? Number(filters.min_price) : undefined,
+                              max_price: filters.max_price ? Number(filters.max_price) : undefined,
+                              house_type: filters.house_type || undefined,
+                              amenities: filters.amenities,
+                              max_distance_km: filters.max_distance_km,
+                            });
+                            toast.success('Search saved');
+                          } catch (e) {
+                            console.error('Save search failed', e);
+                          }
+                        }}
+                        className="sm:w-auto"
+                      >
+                        Save Search
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
                 <div className="flex items-center justify-between">
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
                     Available Properties
@@ -403,6 +540,36 @@ const Dashboard = () => {
               )}
             </TabsContent>
           </Tabs>
+        </motion.div>
+
+        {/* Service Status (Non-AI backend visibility) */}
+        <motion.div variants={itemVariants} className="mt-8">
+          <Card className="border-0 shadow-lg">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-lg font-semibold">Service Status</h4>
+                <Button
+                  variant="outline"
+                  onClick={async () => {
+                    try {
+                      const data = await propertyAPI.health();
+                      toast.success(`Search service: ${data?.status || 'ok'}`);
+                    } catch (e) {
+                      toast.error('Search service unreachable');
+                    }
+                  }}
+                >
+                  Check Health
+                </Button>
+              </div>
+              <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                <p>• GET <code>/api/v1/search</code> — Browse approved properties (Adama-only)</p>
+                <p>• GET <code>/api/v1/property/{'{id}'}</code> — View a single property</p>
+                <p>• POST <code>/api/v1/saved-searches</code> — Save your manual search</p>
+                <p>• GET <code>/api/v1/map/preview</code> — Interactive map preview (no auth)</p>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
     </motion.div>

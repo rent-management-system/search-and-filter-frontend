@@ -66,6 +66,10 @@ export const propertyAPI = {
     const { data } = await searchApi.post('/saved-searches', payload);
     return data;
   },
+  health: async () => {
+    const { data } = await searchApi.get('/health');
+    return data;
+  },
 };
 
 export const recommendationAPI = {
