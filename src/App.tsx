@@ -10,7 +10,7 @@ import i18n from '@/lib/i18n';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
+import Dashboard from "@/pages/Dashboard";
 import { useAuthStore } from '@/lib/store';
 
 const queryClient = new QueryClient({
