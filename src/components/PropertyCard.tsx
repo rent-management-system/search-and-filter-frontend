@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { recommendationAPI } from '@/lib/api';
+import { recommendationAPI, SEARCH_BASE } from '@/lib/api';
 import { toast } from 'sonner';
 
 interface PropertyCardProps {
@@ -98,9 +98,9 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
       >
         <Card className="overflow-hidden hover-lift group cursor-pointer">
           <div className="relative aspect-video bg-muted overflow-hidden">
-            {property.image_url ? (
+            { (property.image_url || (property.images && property.images[0])) ? (
               <img
-                src={property.image_url}
+                src={property.image_url || property.images[0]}
                 alt={property.title}
                 className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
                 onError={(e) => {
@@ -247,7 +247,12 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
                 {property.preview_url && (
                   <Button
                     variant="outline"
-                    onClick={() => window.open(property.preview_url, '_blank')}
+                    onClick={() => {
+                      const url = /^https?:/i.test(property.preview_url)
+                        ? property.preview_url
+                        : `${SEARCH_BASE}${property.preview_url}`;
+                      window.open(url, '_blank');
+                    }}
                   >
                     {t('properties.viewOnMap')}
                   </Button>
@@ -363,7 +368,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
               <div>
                 <p className="text-sm text-muted-foreground mb-2">Location Map</p>
                 <iframe
-                  src={property.preview_url}
+                  src={/^https?:/i.test(property.preview_url) ? property.preview_url : `${SEARCH_BASE}${property.preview_url}`}
                   className="w-full h-96 rounded-lg border"
                   title="Property Location"
                   loading="lazy"
