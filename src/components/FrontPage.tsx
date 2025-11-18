@@ -17,8 +17,8 @@ const FrontPage = () => {
       </div>
 
       <div className="front-child2">
-        <img className="car car1 lg:max-w-[900px]" src="/placeholder.svg" alt="RentAI hero" />
-        <img className="car car2" src="/placeholder.svg" alt="RentAI hero" />
+        <img className="car car1 lg:max-w-[900px]" src="/hero-imag.png" alt="RentAI hero" />
+        <img className="car car2" src="/hero-imag.png" alt="RentAI hero" />
       </div>
     </div>
   );
