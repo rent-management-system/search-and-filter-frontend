@@ -12,6 +12,7 @@ import { useAuthStore } from '@/lib/store';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Search, History, BookmarkCheck, Mail, Phone, MapPin } from 'lucide-react';
 import FrontPage from '@/components/FrontPage';
+import { Steps } from '@/components/Steps';
 
 const Index = () => {
   const { t } = useTranslation();
@@ -87,6 +88,7 @@ const Index = () => {
       <section id="home" className="relative scroll-mt-24">
         <div className="container mx-auto px-4 py-8">
           <FrontPage />
+          <Steps />
           <div className="grid grid-cols-3 gap-6 pt-8">
             <div>
               <p className="text-3xl font-bold text-primary">1000+</p>

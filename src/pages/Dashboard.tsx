@@ -1,15 +1,19 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { recommendationAPI, propertyAPI, HAS_PROPERTY_SEARCH } from '@/lib/api';
 import { PropertyCard } from '@/components/PropertyCard';
-import { Search, History, Sparkles } from 'lucide-react';
+import { Search, History, Sparkles, User, Mail, Phone, Shield, Globe2, Hash } from 'lucide-react';
+import { decodeJwt } from '@/lib/jwt';
 
 const Dashboard = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('browse');
+
+  // Decode JWT for user panel
+  const jwt = useMemo(() => decodeJwt(localStorage.getItem('authToken')), []);
 
   // Browse all properties (tenant view)
   const { data: properties, isLoading: propertiesLoading } = useQuery({
@@ -32,6 +36,39 @@ const Dashboard = () => {
           {t('dashboard_subtitle') || 'Browse properties, view your AI recommendations, and continue where you left off.'}
         </p>
       </div>
+
+      {/* User Details Panel */}
+      <section className="mb-8">
+        <div className="rounded-xl border bg-card shadow-sm p-5">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <User className="h-6 w-6 text-primary" />
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
+              <div className="text-sm">
+                <div className="text-muted-foreground flex items-center gap-1"><Mail className="h-3.5 w-3.5" /> Email</div>
+                <div className="font-medium">{jwt?.email || '—'}</div>
+              </div>
+              <div className="text-sm">
+                <div className="text-muted-foreground flex items-center gap-1"><Shield className="h-3.5 w-3.5" /> Role</div>
+                <div className="font-medium capitalize">{jwt?.role || 'tenant'}</div>
+              </div>
+              <div className="text-sm">
+                <div className="text-muted-foreground flex items-center gap-1"><Phone className="h-3.5 w-3.5" /> Phone</div>
+                <div className="font-medium">{jwt?.phone_number || '—'}</div>
+              </div>
+              <div className="text-sm">
+                <div className="text-muted-foreground flex items-center gap-1"><Globe2 className="h-3.5 w-3.5" /> Preferred Language</div>
+                <div className="font-medium uppercase">{jwt?.preferred_language || 'en'}</div>
+              </div>
+              <div className="text-sm">
+                <div className="text-muted-foreground flex items-center gap-1"><Hash className="h-3.5 w-3.5" /> User ID</div>
+                <div className="font-mono text-xs">{jwt?.sub || '—'}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
         <TabsList className={`grid w-full max-w-md ${HAS_PROPERTY_SEARCH ? 'grid-cols-2' : 'grid-cols-1'}`}>
