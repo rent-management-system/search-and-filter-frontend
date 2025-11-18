@@ -1,160 +1,325 @@
-import { useState } from 'react';
-import { Menu } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { User, LogOut, LayoutDashboard } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { LanguageSelector } from './LanguageSelector';
-import { UserMenu } from './UserMenu';
-import { useAuthStore } from '@/lib/store';
 
-export const Header = () => {
-  const { t } = useTranslation();
-  const { isAuthenticated } = useAuthStore();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+export const Header: React.FC = () => {
+  const [isNavOpen, setIsNavOpen] = useState(false);
+  const { t, i18n } = useTranslation();
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      const offset = 64; // Header height
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
+  const toggleNav = () => setIsNavOpen((s) => !s);
+  const closeNav = () => setIsNavOpen(false);
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
-    }
-    setMobileMenuOpen(false);
+  const changeLanguage = (lang: string) => {
+    i18n.changeLanguage(lang);
   };
 
-  const navLinks = [
-    { id: 'home', label: t('nav.home') },
-    { id: 'properties', label: t('nav.properties') },
-    { id: 'about', label: t('nav.about') },
-    { id: 'contact', label: t('nav.contact') },
-  ];
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('access_token');
+      sessionStorage.removeItem('authToken');
+      sessionStorage.removeItem('access_token');
+      console.log('🔒 Cleared auth tokens from storage');
+    } catch (e) {
+      console.warn('Failed to clear tokens during logout', e);
+    }
+
+    window.location.href = 'https://rental-user-management-frontend-sigma.vercel.app/';
+  };
+
+  const handleDashboard = () => {
+    // Scroll to dashboard section if present
+    const el = document.getElementById('dashboard');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setIsNavOpen(false);
+    }
+  };
+
+  const scrollToSection = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setIsNavOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isNavOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isNavOpen]);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
-        <button 
+    <div className="flex items-center justify-between pt-4 px-3 relative z-20">
+      <div>
+        <img src="/Black.png" alt="Logo" className="h-20" />
+      </div>
+
+      <nav className="items-center space-x-12 list-none hidden md:flex">
+        <button
           onClick={() => scrollToSection('home')}
-          className="flex items-center space-x-2"
+          className="text-md mr-2 text-[18px] transition-transform duration-200 hover:scale-105 hover:text-primary cursor-pointer"
         >
-          <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">R</span>
-            </div>
-            <span className="font-display font-bold text-xl text-foreground">RentAI</span>
-          </div>
+          {t('nav.home')}
         </button>
+        <button
+          onClick={() => scrollToSection('about')}
+          className="text-md mr-2 text-[18px] transition-transform duration-200 hover:scale-105 hover:text-primary cursor-pointer"
+        >
+          {t('nav.about')}
+        </button>
+        <button
+          onClick={() => scrollToSection('properties')}
+          className="text-md mr-2 text-[18px] transition-transform duration-200 hover:scale-105 hover:text-primary cursor-pointer"
+        >
+          {t('nav.properties')}
+        </button>
+        <button
+          onClick={() => scrollToSection('contact')}
+          className="text-md mr-2 text-[18px] transition-transform duration-200 hover:scale-105 hover:text-primary cursor-pointer"
+        >
+          {t('nav.contact')}
+        </button>
+      </nav>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
-          {navLinks.map((link) => (
-            <button
-              key={link.id}
-              onClick={() => scrollToSection(link.id)}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {link.label}
-            </button>
-          ))}
-        </nav>
+      <div className="flex items-center">
+        <div className="nav-child3 -mr-4 hidden md:flex items-center space-x-3">
+          <select
+            className="language-selector-desktop bg-transparent border p-1 rounded"
+            onChange={(e) => changeLanguage(e.target.value)}
+            value={i18n.language}
+          >
+            <option value="" disabled>
+              {t('select_language')}
+            </option>
+            <option value="am">{t('amharic_option')}</option>
+            <option value="en">{t('english_option')}</option>
+            <option value="om">{t('afan_oromo_option')}</option>
+          </select>
 
-        {/* Desktop Actions */}
-        <div className="hidden md:flex items-center space-x-4">
-          <LanguageSelector />
-          {isAuthenticated ? (
-            <UserMenu onDashboardClick={() => scrollToSection('dashboard')} />
-          ) : (
-            <Button 
-              variant="default" 
-              size="sm"
-              onClick={() => {
-                // Mock login for demo
-                const mockUser = {
-                  id: '1',
-                  email: 'demo@rentai.et',
-                  name: 'Demo User'
-                };
-                const mockToken = 'demo-token-' + Date.now();
-                useAuthStore.getState().login(mockUser, mockToken);
-              }}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-2 cursor-pointer group p-2 rounded-lg hover:bg-gray-100 transition-all duration-300">
+                <div className="relative">
+                  <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/70 rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                    <User className="h-4 w-4 text-white" />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-white"></div>
+                </div>
+                
+                <svg 
+                  width="14" 
+                  height="14" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                  className="text-primary transition-transform duration-300 group-hover:rotate-180"
+                  style={{ color: 'hsl(var(--primary))' }}
+                >
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
+            </DropdownMenuTrigger>
+            
+            <DropdownMenuContent 
+              align="end" 
+              className="w-56 p-2 rounded-xl shadow-xl border border-gray-200"
             >
-              Login (Demo)
-            </Button>
-          )}
+              <DropdownMenuItem 
+                className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-primary/10 transition-colors"
+                onClick={handleDashboard}
+              >
+                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                  <LayoutDashboard className="h-4 w-4 text-primary" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-medium text-gray-900">Dashboard</span>
+                  <span className="text-xs text-gray-500">Manage your account</span>
+                </div>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator className="my-1" />
+
+              <DropdownMenuItem 
+                className="flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-destructive/10 transition-colors group"
+                onClick={handleLogout}
+              >
+                <div className="w-8 h-8 bg-destructive/10 rounded-lg flex items-center justify-center group-hover:bg-destructive/20 transition-colors">
+                  <LogOut className="h-4 w-4 text-destructive" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-medium text-gray-900 group-hover:text-destructive transition-colors">
+                    Logout
+                  </span>
+                  <span className="text-xs text-gray-500">Sign out of your account</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Mobile Menu */}
-        <div className="flex md:hidden items-center space-x-2">
-          <LanguageSelector />
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="flex flex-col space-y-6 mt-6"
-              >
-                {isAuthenticated && (
-                  <div className="pb-4 border-b">
-                    <UserMenu onDashboardClick={() => scrollToSection('dashboard')} />
-                  </div>
-                )}
-                
-                <nav className="flex flex-col space-y-4">
-                  {navLinks.map((link) => (
-                    <button
-                      key={link.id}
-                      onClick={() => scrollToSection(link.id)}
-                      className="text-lg font-medium text-foreground hover:text-primary transition-colors text-left"
-                    >
-                      {link.label}
-                    </button>
-                  ))}
-                  {isAuthenticated && (
-                    <button
-                      onClick={() => scrollToSection('dashboard')}
-                      className="text-lg font-medium text-foreground hover:text-primary transition-colors text-left"
-                    >
-                      {t('nav.dashboard')}
-                    </button>
-                  )}
-                </nav>
-
-                {!isAuthenticated && (
-                  <Button 
-                    variant="default" 
-                    className="w-full"
-                    onClick={() => {
-                      // Mock login for demo
-                      const mockUser = {
-                        id: '1',
-                        email: 'demo@rentai.et',
-                        name: 'Demo User'
-                      };
-                      const mockToken = 'demo-token-' + Date.now();
-                      useAuthStore.getState().login(mockUser, mockToken);
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    Login (Demo)
-                  </Button>
-                )}
-              </motion.div>
-            </SheetContent>
-          </Sheet>
+        <div className="md:hidden ml-2">
+          <div
+            className={`hamburger-icon ${isNavOpen && 'gap'}`}
+            onClick={toggleNav}
+            style={{
+              paddingRight: '2px',
+              transform: 'scale(0.8)',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              flexDirection: 'column',
+              gap: '4px',
+              position: 'absolute',
+              height: '44px',
+              width: '60px',
+              top: '1.4rem',
+              right: '1rem',
+              zIndex: 1000,
+              cursor: 'pointer',
+              borderRadius: '5px',
+              transition: 'all 0.2s ease-in-out',
+              background: 'rgb(255 255 255 / 43%)',
+              boxShadow: isNavOpen ? '0px 0px 30px rgba(0, 0, 0, 0.1)' : 'none',
+              color: 'hsl(var(--primary))'
+            }}
+          >
+            <div 
+              className={`icon-1 ${isNavOpen && 'a'}`}
+              style={{
+                width: isNavOpen ? '37px' : '32px',
+                height: '3px',
+                backgroundColor: 'currentColor',
+                transition: 'all 400ms ease',
+                transform: isNavOpen ? 'rotate(40deg)' : 'none',
+                position: 'relative',
+                top: isNavOpen ? '3px' : '0'
+              }}
+            />
+            <div 
+              className={`icon-2 ${isNavOpen && 'c'}`}
+              style={{
+                width: '32px',
+                height: '3px',
+                backgroundColor: 'currentColor',
+                transition: 'all 400ms ease',
+                opacity: isNavOpen ? '0' : '1'
+              }}
+            />
+            <div 
+              className={`icon-3 ${isNavOpen && 'b'}`}
+              style={{
+                width: isNavOpen ? '37px' : '32px',
+                height: '3px',
+                backgroundColor: 'currentColor',
+                transition: 'all 400ms ease',
+                transform: isNavOpen ? 'rotate(-40deg)' : 'none',
+                position: 'relative',
+                bottom: isNavOpen ? '2px' : '0'
+              }}
+            />
+          </div>
         </div>
       </div>
-    </header>
+
+      <div
+        className={`fixed inset-0 bg-black/40 transition-opacity duration-300 ${
+          isNavOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        } z-[9998]`}
+        onClick={closeNav}
+        aria-hidden={!isNavOpen}
+      />
+
+      <div 
+        id="nav" 
+        className={`fixed top-0 right-0 h-screen bg-[#222a2f] text-white z-[9999] transition-all duration-600 ease-spring-bounce delay-100 ${
+          isNavOpen ? 'w-[53%] opacity-100' : 'w-0 opacity-0'
+        }`}
+        aria-hidden={!isNavOpen}
+      >
+        <ul className="ul" style={{ margin: 0, position: 'absolute', top: '30%', left: '7vw', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <li className="li li1" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); scrollToSection('home'); }}
+              style={{ textDecoration: 'none', color: '#d8ccccfc', whiteSpace: 'normal', overflowWrap: 'break-word' }}
+            >
+              {t('nav.home')}
+            </a>
+          </li>
+          <li className="li li2" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}
+              style={{ textDecoration: 'none', color: '#d8ccccfc', whiteSpace: 'normal', overflowWrap: 'break-word' }}
+            >
+              {t('nav.about')}
+            </a>
+          </li>
+          <li className="li li3" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); scrollToSection('properties'); }}
+              style={{ textDecoration: 'none', color: '#d8ccccfc', whiteSpace: 'normal', overflowWrap: 'break-word' }}
+            >
+              {t('nav.properties')}
+            </a>
+          </li>
+          {/* No testimonials section in Index; skipping */}
+          <li className="li li5" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
+            <a 
+              href="#" 
+              onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}
+              style={{ textDecoration: 'none', color: '#d8ccccfc', whiteSpace: 'normal', overflowWrap: 'break-word' }}
+            >
+              {t('nav.contact')}
+            </a>
+          </li>
+          <li className="li">
+            <select
+              className="sign"
+              onChange={(e) => changeLanguage(e.target.value)}
+              value={i18n.language}
+              style={{
+                display: 'flex',
+                padding: '0 2rem',
+                backgroundColor: 'transparent',
+                borderRadius: '0.3rem',
+                alignItems: 'center',
+                color: '#d8ccccfc',
+                fontSize: '1.3rem',
+                marginTop: '1rem',
+                transition: 'all 0.3s',
+                borderRight: '3px solid',
+                borderTop: '1px solid',
+                borderBottom: '3px solid',
+                borderLeft: '1px solid'
+              }}
+            >
+              <option value="" disabled>
+                {t('select_language')}
+              </option>
+              <option value="am">{t('amharic_option')}</option>
+              <option value="en">{t('english_option')}</option>
+              <option value="om">{t('afan_oromo_option')}</option>
+            </select>
+          </li>
+        </ul>
+      </div>
+    </div>
   );
 };

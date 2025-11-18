@@ -11,6 +11,7 @@ import { recommendationAPI, propertyAPI } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Search, History, BookmarkCheck, Mail, Phone, MapPin } from 'lucide-react';
+import FrontPage from '@/components/FrontPage';
 
 const Index = () => {
   const { t } = useTranslation();
@@ -55,121 +56,33 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section id="home" className="relative overflow-hidden bg-gradient-to-b from-muted/30 to-background">
-        <div className="container mx-auto px-4 py-20 md:py-32">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Hero Content */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="space-y-8"
-            >
-              <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20">
-                  <Sparkles className="h-4 w-4 text-accent" />
-                  <span className="text-sm font-medium">{t('hero.beta')}</span>
-                </div>
-                
-                <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-                  {t('hero.title')}
-                </h1>
-                
-                <p className="text-xl text-muted-foreground max-w-xl">
-                  {t('hero.subtitle')}
-                </p>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  size="lg"
-                  className="text-base"
-                  onClick={() => scrollToSection('properties')}
-                >
-                  {t('hero.viewProperties')}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="text-base"
-                  onClick={() => scrollToSection('properties')}
-                >
-                  {t('hero.addProperties')}
-                </Button>
-              </div>
-
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-6 pt-8 border-t">
-                <div>
-                  <p className="text-3xl font-bold text-primary">1000+</p>
-                  <p className="text-sm text-muted-foreground">Properties</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-primary">500+</p>
-                  <p className="text-sm text-muted-foreground">Happy Tenants</p>
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-primary">95%</p>
-                  <p className="text-sm text-muted-foreground">Satisfaction</p>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Hero Images - Overlapping Effect */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="relative"
-            >
-              {/* Desktop: Overlapping layout */}
-              <div className="hidden md:block relative h-[500px]">
-                <div className="absolute top-0 left-0 w-[280px] h-[400px] rounded-2xl overflow-hidden shadow-premium-lg transform rotate-[-6deg] hover:rotate-[-3deg] transition-transform">
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                    <span className="text-8xl">🏠</span>
-                  </div>
-                </div>
-                <div className="absolute top-12 right-0 w-[280px] h-[400px] rounded-2xl overflow-hidden shadow-premium-lg transform rotate-[6deg] hover:rotate-[3deg] transition-transform">
-                  <div className="w-full h-full bg-gradient-to-br from-accent/20 to-primary/20 flex items-center justify-center">
-                    <span className="text-8xl">🏢</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Mobile: Stacked layout */}
-              <div className="md:hidden space-y-4">
-                <div className="w-full h-64 rounded-2xl overflow-hidden shadow-premium">
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                    <span className="text-8xl">🏠</span>
-                  </div>
-                </div>
-                <div className="w-full h-64 rounded-2xl overflow-hidden shadow-premium">
-                  <div className="w-full h-full bg-gradient-to-br from-accent/20 to-primary/20 flex items-center justify-center">
-                    <span className="text-8xl">🏢</span>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+      {/* Hero Section replaced with FrontPage */}
+      <section id="home" className="relative scroll-mt-24">
+        <div className="container mx-auto px-4 py-8">
+          <FrontPage />
+          <div className="grid grid-cols-3 gap-6 pt-8">
+            <div>
+              <p className="text-3xl font-bold text-primary">1000+</p>
+              <p className="text-sm text-muted-foreground">Properties</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-primary">500+</p>
+              <p className="text-sm text-muted-foreground">Happy Tenants</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold text-primary">95%</p>
+              <p className="text-sm text-muted-foreground">Satisfaction</p>
+            </div>
           </div>
-        </div>
-
-        {/* Background decoration */}
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] rounded-full bg-accent/5 blur-3xl" />
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Section - Why Choose RentAI? */}
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose RentAI?</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Experience the future of rental property management with AI-powered recommendations
-            </p>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Experience the future of rental property management with AI-powered recommendations</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -184,9 +97,7 @@ const Index = () => {
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
               <h3 className="text-xl font-semibold mb-2">AI-Powered Matching</h3>
-              <p className="text-muted-foreground">
-                Our advanced AI analyzes your preferences and finds the perfect properties for you
-              </p>
+              <p className="text-muted-foreground">Our advanced AI analyzes your preferences and finds the perfect properties for you</p>
             </motion.div>
 
             <motion.div
@@ -200,9 +111,7 @@ const Index = () => {
                 <span className="text-2xl">📍</span>
               </div>
               <h3 className="text-xl font-semibold mb-2">Location Intelligence</h3>
-              <p className="text-muted-foreground">
-                Find properties based on proximity to work, transport costs, and local amenities
-              </p>
+              <p className="text-muted-foreground">Find properties based on proximity to work, transport costs, and local amenities</p>
             </motion.div>
 
             <motion.div
@@ -216,9 +125,7 @@ const Index = () => {
                 <span className="text-2xl">💰</span>
               </div>
               <h3 className="text-xl font-semibold mb-2">Budget Optimization</h3>
-              <p className="text-muted-foreground">
-                Get recommendations that fit your budget with detailed affordability analysis
-              </p>
+              <p className="text-muted-foreground">Get recommendations that fit your budget with detailed affordability analysis</p>
             </motion.div>
           </div>
         </div>
@@ -399,77 +306,9 @@ const Index = () => {
         </section>
       )}
 
-      {/* About Section */}
-      <section id="about" className="py-20 scroll-mt-16">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="space-y-8"
-          >
-            <div>
-              <h2 className="text-4xl font-bold mb-4">About RentAI</h2>
-              <p className="text-lg text-muted-foreground">
-                Ethiopia's premier AI-powered rental management platform
-              </p>
-            </div>
+      {/* About Section removed per request */}
 
-            <div className="space-y-6">
-              <p className="text-lg">
-                RentAI is revolutionizing the rental property market in Ethiopia by combining
-                cutting-edge artificial intelligence with deep local market knowledge. Our platform
-                helps both tenants and landlords make smarter decisions faster.
-              </p>
-
-              <div>
-                <h3 className="text-2xl font-bold mb-4">Our Mission</h3>
-                <p className="text-lg">
-                  To make finding and managing rental properties effortless, transparent, and
-                  accessible to everyone in Ethiopia through the power of AI technology.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-bold mb-4">What We Do</h3>
-                <ul className="space-y-2 text-lg">
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>AI-powered property recommendations based on your unique needs</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Intelligent location analysis considering work commute and transport costs</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Budget optimization to help you find affordable options</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Comprehensive property database across Addis Ababa</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent mt-1">•</span>
-                    <span>Multi-language support for all Ethiopians</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-2xl font-bold mb-4">Why Choose Us?</h3>
-                <p className="text-lg">
-                  Unlike traditional property search platforms, RentAI understands the Ethiopian
-                  context. We factor in local transportation, neighborhood characteristics, and
-                  cost-of-living considerations to provide truly personalized recommendations.
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Contact Section */}
+      {/* Contact Section (simplified) */}
       <section id="contact" className="py-20 bg-muted/30 scroll-mt-16">
         <div className="container mx-auto px-4 max-w-4xl">
           <motion.div
@@ -516,26 +355,6 @@ const Index = () => {
                 </CardContent>
               </Card>
             </div>
-
-            <Card className="shadow-premium">
-              <CardContent className="pt-6">
-                <h3 className="text-2xl font-bold mb-4">Business Hours</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Monday - Friday</span>
-                    <span className="font-medium">9:00 AM - 6:00 PM</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Saturday</span>
-                    <span className="font-medium">10:00 AM - 4:00 PM</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-muted-foreground">Sunday</span>
-                    <span className="font-medium">Closed</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </motion.div>
         </div>
       </section>

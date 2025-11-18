@@ -23,7 +23,7 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner position="top-right" />
-        <div className="min-h-screen flex flex-col">
+        <div id="bd" className="min-h-screen flex flex-col">
           <Header />
           <main className="flex-1">
             <Index />
