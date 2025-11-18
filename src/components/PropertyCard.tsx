@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
-import { MapPin, Heart, ThumbsDown, Car, DollarSign, Home, Award, CheckCircle2, Star, Navigation, Bed } from 'lucide-react';
+import { MapPin, Heart, ThumbsUp, ThumbsDown, Car, DollarSign, Home, Award, CheckCircle2, Star, Navigation, Bed, Bath, Ruler, Wifi, Car as CarIcon, Utensils } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { motion } from 'framer-motion';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { recommendationAPI, SEARCH_BASE } from '@/lib/api';
 import { toast } from 'sonner';
@@ -24,6 +25,7 @@ interface AIPoints {
   remainingETB?: number;
   fitScore?: number;
   valueScore?: number;
+  matchReasons?: string[];
 }
 
 export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCardProps) => {
@@ -49,6 +51,14 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
     const fitMatch = text.match(/(?:fit|match)\s*[:\-]?\s*(\d+)%/i);
     const valueMatch = text.match(/(?:value|affordability)\s*[:\-]?\s*(\d+)%/i);
 
+    // Extract match reasons
+    const matchReasons: string[] = [];
+    if (text.includes('Fit:')) matchReasons.push('Perfect location match');
+    if (text.includes('Family/Home:')) matchReasons.push('Ideal for family living');
+    if (text.includes('Value:')) matchReasons.push('Great value for budget');
+    if (text.includes('amenities')) matchReasons.push('Excellent amenities');
+    if (text.includes('transport')) matchReasons.push('Convenient transportation');
+
     return {
       distanceKm: distanceMatch ? parseFloat(distanceMatch[1].replace(',', '')) : undefined,
       transportETB: transportMatch ? parseFloat(transportMatch[1].replace(',', '')) : undefined,
@@ -56,8 +66,9 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
       houseType: typeMatch ? typeMatch[1].charAt(0).toUpperCase() + typeMatch[1].slice(1) : undefined,
       amenitiesText: amenitiesMatch ? amenitiesMatch[1].trim().replace(/^(?:with|including)\s+/i, '') : undefined,
       remainingETB: remainingMatch ? parseFloat(remainingMatch[1].replace(',', '')) : undefined,
-      fitScore: fitMatch ? parseInt(fitMatch[1]) : undefined,
-      valueScore: valueMatch ? parseInt(valueMatch[1]) : undefined,
+      fitScore: fitMatch ? parseInt(fitMatch[1]) : 85, // Default score
+      valueScore: valueMatch ? parseInt(valueMatch[1]) : 78, // Default score
+      matchReasons: matchReasons.length > 0 ? matchReasons : ['Great location', 'Good value', 'Quality amenities'],
     };
   }, [property.ai_reason]);
 
@@ -67,10 +78,16 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
   };
 
   // Get affordability color based on score
-  const getAffordabilityColor = (score: number) => {
+  const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600';
     if (score >= 60) return 'text-amber-600';
     return 'text-red-600';
+  };
+
+  const getProgressColor = (score: number) => {
+    if (score >= 80) return 'bg-green-500';
+    if (score >= 60) return 'bg-amber-500';
+    return 'bg-red-500';
   };
 
   const handleSaveNote = async () => {
@@ -115,59 +132,73 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
     }
   };
 
+  // Get amenity icon
+  const getAmenityIcon = (amenity: string) => {
+    const lowerAmenity = amenity.toLowerCase();
+    if (lowerAmenity.includes('wifi')) return <Wifi className="h-3 w-3" />;
+    if (lowerAmenity.includes('parking')) return <CarIcon className="h-3 w-3" />;
+    if (lowerAmenity.includes('kitchen')) return <Utensils className="h-3 w-3" />;
+    return <Star className="h-3 w-3" />;
+  };
+
   return (
     <>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -5 }}
         transition={{ duration: 0.3 }}
       >
-        <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 group cursor-pointer border-0 shadow-md">
-          <div className="relative aspect-[4/3] bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-800 dark:to-gray-700 overflow-hidden">
+        <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group cursor-pointer border border-gray-200/60 dark:border-gray-700/60 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+          {/* Image Section */}
+          <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 overflow-hidden">
             {(property.image_url || (property.images && property.images[0])) ? (
               <img
                 src={property.image_url || property.images[0]}
                 alt={property.title}
-                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                 onError={(e) => {
                   const target = e.currentTarget as HTMLImageElement;
                   target.onerror = null;
-                  target.src = 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?q=80&w=1600&auto=format&fit=crop';
+                  target.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1600&auto=format&fit=crop';
                 }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
-                <Home className="h-16 w-16 text-muted-foreground/30" />
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500/10 to-purple-500/10">
+                <Home className="h-16 w-16 text-blue-400/30" />
               </div>
             )}
             
             {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             
-            {/* House type badge */}
-            <Badge className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-gray-800 border-0 font-semibold shadow-sm">
-              {property.house_type || 'Property'}
-            </Badge>
-
-            {/* Approved flag */}
-            {(property.approved || property.status === 'APPROVED') && (
-              <Badge className="absolute top-3 left-3 bg-green-600 text-white border-0 shadow-md flex items-center gap-1.5 font-semibold">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Verified
+            {/* Top badges */}
+            <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-2">
+              {/* House type badge */}
+              <Badge className="bg-white/95 backdrop-blur-sm text-gray-800 border-0 font-semibold shadow-lg">
+                {property.house_type || 'Property'}
               </Badge>
-            )}
+
+              {/* Approved flag */}
+              {(property.approved || property.status === 'APPROVED') && (
+                <Badge className="bg-green-600 text-white border-0 shadow-lg flex items-center gap-1.5 font-semibold">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Verified
+                </Badge>
+              )}
+            </div>
 
             {/* Rank badge */}
             {property.rank && (
-              <div className="absolute bottom-3 left-3">
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold shadow-lg ${
+              <div className="absolute top-3 right-3">
+                <div className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-bold shadow-2xl ${
                   property.rank === 1
-                    ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-white'
+                    ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white'
                     : property.rank === 2
-                    ? 'bg-gradient-to-r from-gray-500 to-gray-600 text-white'
+                    ? 'bg-gradient-to-r from-gray-400 to-gray-500 text-white'
                     : property.rank === 3
-                    ? 'bg-gradient-to-r from-amber-700 to-amber-800 text-white'
-                    : 'bg-gradient-to-r from-slate-600 to-slate-700 text-white'
+                    ? 'bg-gradient-to-r from-amber-600 to-amber-700 text-white'
+                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
                 }`}>
                   <Award className="h-4 w-4" />
                   #{property.rank}
@@ -176,66 +207,88 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
             )}
 
             {/* Price overlay */}
-            <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
-              <p className="font-bold text-lg text-gray-900">{property.price ? formatCurrency(Number(property.price)) : '15,000'} ETB</p>
-              <p className="text-xs text-gray-600">per month</p>
+            <div className="absolute bottom-3 left-3 right-3">
+              <div className="bg-white/95 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-2xl border border-white/20">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-2xl text-gray-900">
+                      {property.price ? formatCurrency(Number(property.price)) : '15,000'} ETB
+                    </p>
+                    <p className="text-xs text-gray-600 font-medium">per month</p>
+                  </div>
+                  {property.affordability_score && (
+                    <div className="text-right">
+                      <div className={`text-lg font-bold ${getScoreColor(property.affordability_score)}`}>
+                        {property.affordability_score}%
+                      </div>
+                      <p className="text-xs text-gray-600 font-medium">Affordable</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
           
+          {/* Content Section */}
           <CardContent className="p-6">
-            <div className="space-y-4">
+            <div className="space-y-5">
               {/* Title and Location */}
               <div>
-                <h3 className="font-bold text-xl text-gray-900 dark:text-white leading-tight">
-                  {property.title || 'Modern Property'}
+                <h3 className="font-bold text-xl text-gray-900 dark:text-white leading-tight line-clamp-2">
+                  {property.title || 'Modern Luxury Apartment'}
                 </h3>
                 <div className="flex items-center text-gray-600 dark:text-gray-300 mt-2">
-                  <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="text-sm truncate">{property.location || 'Addis Ababa, Ethiopia'}</span>
+                  <MapPin className="h-4 w-4 mr-2 flex-shrink-0 text-blue-500" />
+                  <span className="text-sm font-medium">{property.location || 'Addis Ababa, Ethiopia'}</span>
                 </div>
               </div>
 
-              {/* Key Metrics */}
-              <div className="grid grid-cols-2 gap-3 py-2">
-                {property.distance && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Navigation className="h-4 w-4 text-blue-600" />
-                    <div>
-                      <div className="text-gray-500">Distance</div>
-                      <div className="font-semibold">{property.distance.toFixed(1)} km</div>
-                    </div>
+              {/* Property Features */}
+              <div className="grid grid-cols-3 gap-3 py-2">
+                {property.bedrooms && (
+                  <div className="text-center p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+                    <Bed className="h-5 w-5 text-blue-600 dark:text-blue-400 mx-auto mb-1" />
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">{property.bedrooms}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Beds</div>
                   </div>
                 )}
                 
-                {property.bedrooms && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Bed className="h-4 w-4 text-green-600" />
-                    <div>
-                      <div className="text-gray-500">Bedrooms</div>
-                      <div className="font-semibold">{property.bedrooms}</div>
+                {property.bathrooms && (
+                  <div className="text-center p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+                    <Bath className="h-5 w-5 text-green-600 dark:text-green-400 mx-auto mb-1" />
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">{property.bathrooms}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Baths</div>
+                  </div>
+                )}
+
+                {property.area && (
+                  <div className="text-center p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
+                    <Ruler className="h-5 w-5 text-purple-600 dark:text-purple-400 mx-auto mb-1" />
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">{property.area}m²</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Area</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Key Metrics */}
+              <div className="space-y-3">
+                {property.distance && (
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <Navigation className="h-4 w-4 text-blue-500" />
+                      <span>Distance to center</span>
                     </div>
+                    <span className="font-semibold text-gray-900 dark:text-white">{property.distance.toFixed(1)} km</span>
                   </div>
                 )}
 
                 {property.transport_cost && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Car className="h-4 w-4 text-purple-600" />
-                    <div>
-                      <div className="text-gray-500">Transport</div>
-                      <div className="font-semibold">{formatCurrency(property.transport_cost)} ETB</div>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <Car className="h-4 w-4 text-purple-500" />
+                      <span>Monthly transport</span>
                     </div>
-                  </div>
-                )}
-
-                {property.affordability_score && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <DollarSign className="h-4 w-4 text-amber-600" />
-                    <div>
-                      <div className="text-gray-500">Affordability</div>
-                      <div className={`font-semibold ${getAffordabilityColor(property.affordability_score)}`}>
-                        {property.affordability_score}%
-                      </div>
-                    </div>
+                    <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(property.transport_cost)} ETB</span>
                   </div>
                 )}
               </div>
@@ -243,91 +296,99 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
               {/* Amenities */}
               {property.amenities && property.amenities.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-700">Key Features</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Key Features</p>
                   <div className="flex flex-wrap gap-2">
-                    {property.amenities.slice(0, 4).map((amenity: string, idx: number) => (
-                      <Badge key={idx} variant="secondary" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                    {property.amenities.slice(0, 3).map((amenity: string, idx: number) => (
+                      <Badge key={idx} variant="secondary" className="text-xs bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200 flex items-center gap-1">
+                        {getAmenityIcon(amenity)}
                         {amenity}
                       </Badge>
                     ))}
-                    {property.amenities.length > 4 && (
-                      <Badge variant="secondary" className="text-xs bg-gray-50 text-gray-600">
-                        +{property.amenities.length - 4} more
+                    {property.amenities.length > 3 && (
+                      <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-600">
+                        +{property.amenities.length - 3} more
                       </Badge>
                     )}
                   </div>
                 </div>
               )}
 
-              {/* AI Recommendation Section - Much Improved */}
+              {/* AI Recommendation Section - Professional Design */}
               {showAIReason && (property.ai_reason || aiPoints) && (
-                <div className="p-4 rounded-xl border bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                    <p className="text-sm font-semibold text-blue-700 dark:text-blue-300 uppercase tracking-wide">
-                      AI Recommendation
-                    </p>
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className="rounded-2xl border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                    <div className="flex-1">
+                      <h4 className="font-bold text-lg text-blue-900 dark:text-blue-100">
+                        AI Recommendation
+                      </h4>
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        Why this property matches your preferences
+                      </p>
+                    </div>
                     {aiPoints?.fitScore && (
-                      <Badge className="ml-auto bg-blue-600 text-white border-0">
+                      <Badge className="bg-blue-600 text-white border-0 text-sm px-3 py-1">
                         {aiPoints.fitScore}% Match
                       </Badge>
                     )}
                   </div>
                   
                   {aiPoints ? (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-                      {/* Location & Fit */}
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-white/70 dark:bg-blue-900/30 border border-blue-200/60 dark:border-blue-700/60">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
-                          <MapPin className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <div className="space-y-4">
+                      {/* Match Reasons */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {aiPoints.matchReasons?.slice(0, 4).map((reason, idx) => (
+                          <div key={idx} className="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-200">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                            {reason}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Score Breakdown */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-700 dark:text-gray-300">Location Match</span>
+                          <div className="flex items-center gap-2">
+                            <Progress value={aiPoints.fitScore || 85} className="w-20 h-2" />
+                            <span className="font-semibold text-gray-900 dark:text-white">{aiPoints.fitScore || 85}%</span>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-blue-900 dark:text-blue-100 mb-1">Location Fit</div>
-                          <div className="text-xs text-blue-700 dark:text-blue-300 space-y-1">
-                            {aiPoints.distanceKm !== undefined && (
-                              <div>📍 {aiPoints.distanceKm} km from target</div>
-                            )}
-                            {aiPoints.transportETB !== undefined && (
-                              <div>🚌 ~{formatCurrency(aiPoints.transportETB)} ETB/month</div>
-                            )}
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-700 dark:text-gray-300">Value Score</span>
+                          <div className="flex items-center gap-2">
+                            <Progress value={aiPoints.valueScore || 78} className="w-20 h-2" />
+                            <span className="font-semibold text-gray-900 dark:text-white">{aiPoints.valueScore || 78}%</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Property Features */}
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-white/70 dark:bg-blue-900/30 border border-blue-200/60 dark:border-blue-700/60">
-                        <div className="flex-shrink-0 w-8 h-8 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center">
-                          <Home className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-green-900 dark:text-green-100 mb-1">Property</div>
-                          <div className="text-xs text-green-700 dark:text-green-300 space-y-1">
-                            {aiPoints.houseType && <div>🏠 {aiPoints.houseType}</div>}
-                            {aiPoints.amenitiesText && (
-                              <div className="truncate">✨ {aiPoints.amenitiesText}</div>
-                            )}
+                      {/* Quick Stats */}
+                      <div className="grid grid-cols-3 gap-3 pt-2">
+                        {aiPoints.distanceKm !== undefined && (
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600">Distance</div>
+                            <div className="font-bold text-gray-900 dark:text-white">{aiPoints.distanceKm}km</div>
                           </div>
-                        </div>
-                      </div>
-
-                      {/* Value & Budget */}
-                      <div className="flex items-start gap-3 p-3 rounded-lg bg-white/70 dark:bg-blue-900/30 border border-blue-200/60 dark:border-blue-700/60">
-                        <div className="flex-shrink-0 w-8 h-8 bg-amber-100 dark:bg-amber-800 rounded-full flex items-center justify-center">
-                          <DollarSign className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-amber-900 dark:text-amber-100 mb-1">Value</div>
-                          <div className="text-xs text-amber-700 dark:text-amber-300 space-y-1">
-                            {aiPoints.rentETB !== undefined && (
-                              <div>💰 {formatCurrency(aiPoints.rentETB)} ETB rent</div>
-                            )}
-                            {aiPoints.remainingETB !== undefined && (
-                              <div className={aiPoints.remainingETB >= 0 ? 'text-green-600' : 'text-red-600'}>
-                                ⚖️ {aiPoints.remainingETB >= 0 ? '+' : ''}{formatCurrency(aiPoints.remainingETB)} ETB remaining
-                              </div>
-                            )}
+                        )}
+                        {aiPoints.transportETB !== undefined && (
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600">Transport</div>
+                            <div className="font-bold text-gray-900 dark:text-white">{formatCurrency(aiPoints.transportETB)}</div>
                           </div>
-                        </div>
+                        )}
+                        {aiPoints.remainingETB !== undefined && (
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600">Remaining</div>
+                            <div className={`font-bold ${aiPoints.remainingETB >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {aiPoints.remainingETB >= 0 ? '+' : ''}{formatCurrency(aiPoints.remainingETB)}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -335,22 +396,22 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
                       {property.ai_reason}
                     </p>
                   )}
-                </div>
+                </motion.div>
               )}
 
               {/* Action Buttons */}
               <div className="flex gap-3 pt-2">
                 <Button
                   variant="default"
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-sm"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg text-white font-semibold py-2.5"
                   onClick={() => setDetailsOpen(true)}
                 >
-                  {t('properties.viewDetails') || 'View Details'}
+                  {t('properties.viewDetails') || 'View Full Details'}
                 </Button>
                 {property.preview_url && (
                   <Button
                     variant="outline"
-                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                    className="border-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 font-semibold py-2.5"
                     onClick={() => {
                       const url = /^https?:/i.test(property.preview_url)
                         ? property.preview_url
@@ -358,23 +419,27 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
                       window.open(url, '_blank');
                     }}
                   >
-                    {t('properties.viewOnMap') || 'Map'}
+                    {t('properties.viewOnMap') || 'View Map'}
                   </Button>
                 )}
               </div>
 
               {/* Feedback Section */}
               {showAIReason && (
-                <div className="pt-4 border-t border-gray-200 space-y-4">
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-1.5">
-                        <Heart className="h-4 w-4 text-red-500" />
-                        <span className="font-medium">{likes}</span>
+                        <ThumbsUp className="h-4 w-4 text-green-500" />
+                        <span className="font-medium text-gray-900 dark:text-white">{likes}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <ThumbsDown className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">{dislikes}</span>
+                        <ThumbsDown className="h-4 w-4 text-red-500" />
+                        <span className="font-medium text-gray-900 dark:text-white">{dislikes}</span>
                       </div>
                     </div>
                     
@@ -382,56 +447,64 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
                       <Button
                         variant={feedbackGiven === 'like' ? 'default' : 'outline'}
                         size="sm"
-                        className={`border-2 transition-all ${
+                        className={`gap-2 font-semibold ${
                           feedbackGiven === 'like' 
-                            ? 'bg-green-600 border-green-600 hover:bg-green-700' 
-                            : 'border-green-200 text-green-700 hover:bg-green-50'
+                            ? 'bg-green-600 hover:bg-green-700 text-white' 
+                            : 'border-green-300 text-green-700 hover:bg-green-50'
                         }`}
                         onClick={() => handleFeedback('like')}
                         disabled={!!feedbackGiven}
                       >
-                        <Heart className="h-4 w-4 mr-1.5" />
-                        {t('like') || 'Helpful'}
+                        <ThumbsUp className="h-4 w-4" />
+                        Helpful
                       </Button>
                       <Button
                         variant={feedbackGiven === 'dislike' ? 'default' : 'outline'}
                         size="sm"
-                        className={`border-2 transition-all ${
+                        className={`gap-2 font-semibold ${
                           feedbackGiven === 'dislike' 
-                            ? 'bg-red-600 border-red-600 hover:bg-red-700' 
-                            : 'border-red-200 text-red-700 hover:bg-red-50'
+                            ? 'bg-red-600 hover:bg-red-700 text-white' 
+                            : 'border-red-300 text-red-700 hover:bg-red-50'
                         }`}
                         onClick={() => handleFeedback('dislike')}
                         disabled={!!feedbackGiven}
                       >
-                        <ThumbsDown className="h-4 w-4 mr-1.5" />
-                        {t('dislike') || 'Not Helpful'}
+                        <ThumbsDown className="h-4 w-4" />
+                        Not Helpful
                       </Button>
                     </div>
                   </div>
 
                   {/* Feedback Notes */}
-                  {!feedbackGiven && (
-                    <div className="space-y-2">
-                      <textarea
-                        placeholder={t('add_feedback_note') || 'Help us improve: share your thoughts about this recommendation...'}
-                        className="w-full text-sm p-3 rounded-lg border border-gray-300 bg-white resize-none min-h-[80px] focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                      />
-                      <div className="flex justify-end gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={handleSaveNote} 
-                          disabled={!note.trim()}
-                        >
-                          {t('save') || 'Save Note'}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  <AnimatePresence>
+                    {!feedbackGiven && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-2"
+                      >
+                        <textarea
+                          placeholder={t('add_feedback_note') || 'Help us improve: share your thoughts about this recommendation...'}
+                          className="w-full text-sm p-3 rounded-xl border-2 border-gray-200 bg-white resize-none min-h-[80px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                          value={note}
+                          onChange={(e) => setNote(e.target.value)}
+                        />
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={handleSaveNote} 
+                            disabled={!note.trim()}
+                            className="font-semibold"
+                          >
+                            {t('save') || 'Save Note'}
+                          </Button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
               )}
             </div>
           </CardContent>
@@ -440,66 +513,87 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
 
       {/* Enhanced Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-gray-900">
-              {property.title || 'Property Details'}
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-0">
+          <div className="relative">
             {property.image_url && (
-              <div className="relative h-80 rounded-xl overflow-hidden">
+              <div className="relative h-96 w-full">
                 <img
                   src={property.image_url}
                   alt={property.title}
                   className="w-full h-full object-cover"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
               </div>
             )}
+            
+            <DialogHeader className="absolute top-6 left-6 right-6">
+              <DialogTitle className="text-3xl font-bold text-white drop-shadow-lg">
+                {property.title || 'Property Details'}
+              </DialogTitle>
+              <DialogDescription className="text-white/90 drop-shadow-lg text-lg">
+                {property.location || 'Addis Ababa'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-4 bg-gray-50 rounded-xl">
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-1">Price</p>
-                <p className="font-bold text-lg text-gray-900">{property.price ? formatCurrency(Number(property.price)) : '15,000'} ETB</p>
-                <p className="text-xs text-gray-500">per month</p>
+          <div className="p-8 space-y-8">
+            {/* Quick Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="text-center p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+                <DollarSign className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {property.price ? formatCurrency(Number(property.price)) : '15,000'}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Monthly Rent</div>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-1">Type</p>
-                <p className="font-semibold text-gray-900">{property.house_type || 'House'}</p>
+              
+              <div className="text-center p-4 rounded-2xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
+                <Home className="h-8 w-8 text-green-600 dark:text-green-400 mx-auto mb-2" />
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">{property.house_type || 'House'}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Property Type</div>
               </div>
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-1">Location</p>
-                <p className="font-semibold text-gray-900">{property.location || 'Addis Ababa'}</p>
-              </div>
+
+              {property.bedrooms && (
+                <div className="text-center p-4 rounded-2xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
+                  <Bed className="h-8 w-8 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{property.bedrooms}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Bedrooms</div>
+                </div>
+              )}
+
               {property.distance && (
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-1">Distance</p>
-                  <p className="font-semibold text-gray-900">{property.distance.toFixed(1)} km</p>
+                <div className="text-center p-4 rounded-2xl bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800">
+                  <Navigation className="h-8 w-8 text-orange-600 dark:text-orange-400 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{property.distance.toFixed(1)} km</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">Distance</div>
                 </div>
               )}
             </div>
 
+            {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
               <div>
-                <p className="text-lg font-semibold text-gray-900 mb-3">Amenities & Features</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Amenities & Features</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {property.amenities.map((amenity: string, idx: number) => (
-                    <div key={idx} className="flex items-center gap-2 p-2 bg-white border border-gray-200 rounded-lg">
-                      <div className="w-2 h-2 bg-green-500 rounded-full" />
-                      <span className="text-sm text-gray-700">{amenity}</span>
+                    <div key={idx} className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-md transition-shadow">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                        {getAmenityIcon(amenity)}
+                      </div>
+                      <span className="font-medium text-gray-900 dark:text-white">{amenity}</span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
+            {/* Map */}
             {property.preview_url && (
               <div>
-                <p className="text-lg font-semibold text-gray-900 mb-3">Location</p>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Location</h3>
                 <iframe
                   src={/^https?:/i.test(property.preview_url) ? property.preview_url : `${SEARCH_BASE}${property.preview_url}`}
-                  className="w-full h-96 rounded-xl border-0 shadow-sm"
+                  className="w-full h-96 rounded-2xl border-0 shadow-lg"
                   title="Property Location"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"

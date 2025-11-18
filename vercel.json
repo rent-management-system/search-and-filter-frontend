@@ -5,6 +5,10 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/api/(.*)",
+      "destination": "https://search-and-filter-service.onrender.com/api/v1/$1"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

@@ -8,8 +8,9 @@ const { VITE_RECO_API_BASE, VITE_SEARCH_API_BASE } = import.meta.env as {
 
 // Defaults
 const RECO_API_BASE = VITE_RECO_API_BASE || 'https://dagiteferi2011-ai-recommendation.hf.space/api/v1';
-const SEARCH_API_BASE = VITE_SEARCH_API_BASE || 'https://search-and-filter-service.onrender.com/api/v1';
-export const SEARCH_BASE = SEARCH_API_BASE.replace(/\/api\/v1\/?$/, '');
+// Default to same-origin '/api' so Vercel rewrite can proxy -> avoids CORS
+const SEARCH_API_BASE = VITE_SEARCH_API_BASE || '/api';
+export const SEARCH_BASE = SEARCH_API_BASE.replace(/\/api(\/v1)?\/?$/, '');
 
 // Feature flag for property search UI
 export const HAS_PROPERTY_SEARCH = !!SEARCH_API_BASE;
