@@ -1,8 +1,21 @@
-import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      const offset = 64;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   return (
     <footer className="border-t bg-muted/30">
@@ -40,19 +53,28 @@ export const Footer = () => {
             <h3 className="font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/properties" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button 
+                  onClick={() => scrollToSection('properties')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
                   Browse Properties
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/about" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button 
+                  onClick={() => scrollToSection('about')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
                   About Us
-                </Link>
+                </button>
               </li>
               <li>
-                <Link to="/contact" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <button 
+                  onClick={() => scrollToSection('contact')}
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
                   Contact
-                </Link>
+                </button>
               </li>
             </ul>
           </div>
