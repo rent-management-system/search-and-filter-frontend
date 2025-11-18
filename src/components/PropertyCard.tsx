@@ -22,10 +22,20 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
 
   const handleFeedback = async (feedback: 'like' | 'dislike') => {
     try {
-      await recommendationAPI.sendFeedback(property.id, feedback);
-      setFeedbackGiven(feedback);
-      toast.success('Feedback submitted!');
-      onFeedback?.(feedback);
+      if (onFeedback) {
+        await onFeedback(feedback);
+        setFeedbackGiven(feedback);
+        toast.success('Feedback submitted!');
+      } else {
+        // Fallback: send minimal payload if parent didn't provide handler
+        await recommendationAPI.sendFeedback({
+          tenant_preference_id: 0,
+          property_id: property.id,
+          liked: feedback === 'like',
+        });
+        setFeedbackGiven(feedback);
+        toast.success('Feedback submitted!');
+      }
     } catch (error) {
       console.error('Feedback error:', error);
     }

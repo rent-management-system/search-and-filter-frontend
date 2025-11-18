@@ -1,7 +1,11 @@
 import axios from 'axios';
 import { toast } from 'sonner';
 
-const API_BASE_URL = 'http://localhost:8005/api/v1';
+const { VITE_RECO_API_BASE } = import.meta.env as { VITE_RECO_API_BASE?: string };
+const API_BASE_URL = VITE_RECO_API_BASE || 'https://dagiteferi2011-ai-recommendation.hf.space/api/v1';
+
+// Expose a feature flag so the UI can skip calling /search on backends that don't implement it
+export const HAS_PROPERTY_SEARCH = !/ai-recommendation\.hf\.space/.test(API_BASE_URL);
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -45,8 +49,16 @@ api.interceptors.response.use(
 // API functions
 export const propertyAPI = {
   search: async (params: any) => {
-    const { data } = await api.get('/search', { params });
-    return data;
+    try {
+      const { data } = await api.get('/search', { params });
+      return data;
+    } catch (error: any) {
+      // Some deployments (HF Space) don't provide /search. Gracefully return no results.
+      if (error?.response?.status === 404) {
+        return { results: [] };
+      }
+      throw error;
+    }
   },
   
   getById: async (id: string) => {
@@ -56,6 +68,10 @@ export const propertyAPI = {
 };
 
 export const recommendationAPI = {
+  health: async () => {
+    const { data } = await axios.get(API_BASE_URL.replace('/api/v1', '') + '/health');
+    return data;
+  },
   generate: async (payload: any) => {
     const { data } = await api.post('/recommendations', payload);
     return data;
@@ -65,12 +81,18 @@ export const recommendationAPI = {
     const { data } = await api.get('/recommendations/mine');
     return data;
   },
+  getLatest: async () => {
+    const { data } = await api.get('/recommendations/latest');
+    return data;
+  },
   
-  sendFeedback: async (propertyId: string, feedback: 'like' | 'dislike') => {
-    const { data } = await api.post(`/recommendations/feedback`, {
-      property_id: propertyId,
-      feedback,
-    });
+  sendFeedback: async (payload: {
+    tenant_preference_id: number;
+    property_id: string;
+    liked: boolean;
+    note?: string;
+  }) => {
+    const { data } = await api.post(`/recommendations/feedback`, payload);
     return data;
   },
 };

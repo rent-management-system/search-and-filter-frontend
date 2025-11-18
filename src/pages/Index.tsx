@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AIRecommendationForm } from '@/components/properties/AIRecommendationForm';
 import { PropertyCard } from '@/components/PropertyCard';
-import { recommendationAPI, propertyAPI } from '@/lib/api';
+import { recommendationAPI, propertyAPI, HAS_PROPERTY_SEARCH } from '@/lib/api';
 import { useAuthStore } from '@/lib/store';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Search, History, BookmarkCheck, Mail, Phone, MapPin } from 'lucide-react';
@@ -18,12 +18,14 @@ const Index = () => {
   const { isAuthenticated } = useAuthStore();
   const [activeTab, setActiveTab] = useState('ai');
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [tenantPrefId, setTenantPrefId] = useState<number | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Browse all properties
   const { data: properties, isLoading: propertiesLoading } = useQuery({
     queryKey: ['properties'],
     queryFn: () => propertyAPI.search({}),
+    enabled: HAS_PROPERTY_SEARCH,
   });
 
   // Recommendations history
@@ -36,8 +38,33 @@ const Index = () => {
   const handleGenerateRecommendations = async (formData: any) => {
     setIsGenerating(true);
     try {
-      const result = await recommendationAPI.generate(formData);
-      setRecommendations(result.recommendations || []);
+      // Map UI form fields to API schema
+      const payload = {
+        job_school_location: formData.job_location,
+        salary: Number(formData.salary),
+        house_type: formData.house_type,
+        family_size: Number(formData.family_size),
+        preferred_amenities: formData.amenities || [],
+        language: formData.language === 'om' ? 'or' : formData.language,
+      };
+      const result = await recommendationAPI.generate(payload);
+      setTenantPrefId(result.tenant_preference_id ?? null);
+      // Adapt API response to PropertyCard expected shape
+      const adapted = (result.recommendations || []).map((r: any) => ({
+        id: r.property_id,
+        title: r.title,
+        location: r.location,
+        price: r.price,
+        transport_cost: r.transport_cost,
+        affordability_score: r.affordability_score,
+        ai_reason: r.reason,
+        preview_url: r.map_url,
+        image_url: r.images?.[0],
+        amenities: r.details?.amenities || [],
+        house_type: r.details?.house_type,
+        distance: r.route?.distance_km,
+      }));
+      setRecommendations(adapted);
       // Scroll to results
       setTimeout(() => {
         document.getElementById('properties')?.scrollIntoView({ behavior: 'smooth' });
@@ -147,15 +174,17 @@ const Index = () => {
           </motion.div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+            <TabsList className={`grid w-full max-w-md mx-auto ${HAS_PROPERTY_SEARCH ? 'grid-cols-2' : 'grid-cols-1'}`}>
               <TabsTrigger value="ai" className="gap-2">
                 <Sparkles className="h-4 w-4" />
                 {t('properties.aiRecommendations')}
               </TabsTrigger>
-              <TabsTrigger value="browse" className="gap-2">
-                <Search className="h-4 w-4" />
-                {t('properties.browseAll')}
-              </TabsTrigger>
+              {HAS_PROPERTY_SEARCH && (
+                <TabsTrigger value="browse" className="gap-2">
+                  <Search className="h-4 w-4" />
+                  {t('properties.browseAll')}
+                </TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="ai" className="space-y-8">
@@ -195,8 +224,17 @@ const Index = () => {
                           key={idx}
                           property={property}
                           showAIReason
-                          onFeedback={(feedback) => {
-                            console.log('Feedback:', feedback, 'for property:', property.id);
+                          onFeedback={async (feedback) => {
+                            if (!tenantPrefId) return;
+                            try {
+                              await recommendationAPI.sendFeedback({
+                                tenant_preference_id: tenantPrefId,
+                                property_id: property.id,
+                                liked: feedback === 'like',
+                              });
+                            } catch (e) {
+                              console.error('Feedback submit failed', e);
+                            }
                           }}
                         />
                       ))}
@@ -206,6 +244,7 @@ const Index = () => {
               )}
             </TabsContent>
 
+            {HAS_PROPERTY_SEARCH && (
             <TabsContent value="browse" className="space-y-8">
               {propertiesLoading ? (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -229,6 +268,7 @@ const Index = () => {
                 </div>
               )}
             </TabsContent>
+            )}
           </Tabs>
         </div>
       </section>
@@ -278,7 +318,6 @@ const Index = () => {
                     <div className="space-y-3">
                       <Skeleton className="h-16 w-full" />
                       <Skeleton className="h-16 w-full" />
-                      <Skeleton className="h-16 w-full" />
                     </div>
                   ) : recommendationsHistory?.length > 0 ? (
                     <div className="space-y-3">
@@ -287,7 +326,7 @@ const Index = () => {
                           key={idx}
                           className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                         >
-                          <p className="text-sm font-medium">{rec.job_location}</p>
+                          <p className="text-sm font-medium">Preference #{rec.tenant_preference_id}</p>
                           <p className="text-xs text-muted-foreground">
                             {new Date(rec.created_at).toLocaleDateString()}
                           </p>
