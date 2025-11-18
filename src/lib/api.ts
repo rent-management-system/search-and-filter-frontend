@@ -85,6 +85,10 @@ export const recommendationAPI = {
     const { data } = await api.get('/recommendations/latest');
     return data;
   },
+  getByPreferenceId: async (tenant_preference_id: number) => {
+    const { data } = await api.get(`/recommendations/${tenant_preference_id}`);
+    return data;
+  },
   
   sendFeedback: async (payload: {
     tenant_preference_id: number;

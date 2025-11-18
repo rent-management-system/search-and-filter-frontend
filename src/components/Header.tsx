@@ -316,6 +316,47 @@ export const Header: React.FC = () => {
               <option value="om">{t('afan_oromo_option')}</option>
             </select>
           </li>
+          {/* Mobile actions: Dashboard and Logout */}
+          <li className="li" style={{ listStyle: 'none', marginTop: '1rem' }}>
+            <button
+              onClick={handleDashboard}
+              style={{
+                width: '100%',
+                padding: '0.8rem 1.2rem',
+                background: 'hsl(var(--primary) / 0.15)',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: '12px',
+                fontSize: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 13h3v8H3zM18 13h3v8h-3zM6 5l6-3 6 3v6c0 2.8-1.6 5.4-4.1 6.7L12 20l-1.9-1.3C7.6 16.4 6 13.8 6 11V5z"/></svg>
+              {t('nav.dashboard') || 'Dashboard'}
+            </button>
+          </li>
+          <li className="li" style={{ listStyle: 'none', marginTop: '0.6rem' }}>
+            <button
+              onClick={handleLogout}
+              style={{
+                width: '100%',
+                padding: '0.8rem 1.2rem',
+                background: 'transparent',
+                color: '#fecaca',
+                border: '2px solid rgba(239,68,68,0.35)',
+                borderRadius: '12px',
+                fontSize: '1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+              {t('logout') || 'Logout'}
+            </button>
+          </li>
         </ul>
       </div>
     </div>
