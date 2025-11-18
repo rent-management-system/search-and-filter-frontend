@@ -11,6 +11,7 @@ import { PropertyCard } from '@/components/PropertyCard';
 import { Search, History, Sparkles, User, Mail, Phone, Shield, Globe2, Hash, Calendar, MapPin, TrendingUp, Home, Star, ChevronRight } from 'lucide-react';
 import { decodeJwt } from '@/lib/jwt';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const { t } = useTranslation();
@@ -224,7 +225,7 @@ const Dashboard = () => {
           </Card>
         </motion.section>
 
-        {/* Main Content Tabs */
+        {/* Main Content Tabs */}
         <motion.div variants={itemVariants}>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
             <TabsList className={`grid w-full max-w-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg ${
