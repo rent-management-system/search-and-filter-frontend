@@ -64,6 +64,60 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/c7f9c3c6-23fa-43cf-b994-03ed8d11a84f) and click on Share -> Publish.
 
+## Authentication & Token Handling
+
+This app is designed to receive an access token after a successful login on an external authentication service. When the user is redirected back to this app, the token can be provided in either the query string or the URL hash.
+
+- Supported patterns on redirect:
+  - `?token=...` or `?access_token=...`
+  - `#token=...` or `#access_token=...`
+
+How it works in the code:
+
+- `src/App.tsx` includes a top-level `useEffect` that runs on app load:
+  - Parses the token from the URL (query and/or hash).
+  - Stores it in `localStorage` as `authToken` via `useAuthStore().setToken`.
+  - Shows a success toast when stored.
+  - Cleans the URL (removes token from the address bar) using `history.replaceState`.
+- `src/lib/api.ts` uses an Axios request interceptor to automatically attach `Authorization: Bearer <token>` for all backend requests when `authToken` is present.
+- If the backend returns `401`, the response interceptor clears the token and redirects to `/`.
+
+Quick test locally:
+
+1. Start the dev server: `npm run dev`
+2. Visit one of the following URLs in your browser:
+   - `http://localhost:5173/auth/callback?token=TEST123`
+   - `http://localhost:5173/auth/callback#access_token=TEST123`
+3. You should see a success toast and the URL will be cleaned to remove the token. The token will be saved as `authToken` in Local Storage.
+
+Note: If you want to navigate to a specific page after capturing the token (e.g., `/dashboard`), add a redirect in the same `useEffect` after storing the token.
+
+## Environment Variables
+
+Create a `.env` file at the project root to configure runtime settings. Variables used in this project include:
+
+- `VITE_RECO_API_BASE`: Base URL for the backend API powering search/recommendations.
+
+Example `.env`:
+
+```env
+VITE_RECO_API_BASE=https://your-api.example.com/api/v1
+```
+
+## Vercel / SPA Routing Note
+
+If deploying to Vercel (or any static host), ensure SPA-friendly routing so that deep links like `/auth/callback` load your app and client-side routing takes over. On Vercel, configure a rewrite to `index.html` for all paths.
+
+Example `vercel.json` snippet:
+
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
 ## Can I connect a custom domain to my Lovable project?
 
 Yes, you can!
