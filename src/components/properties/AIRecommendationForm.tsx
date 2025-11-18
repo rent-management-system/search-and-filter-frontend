@@ -75,7 +75,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
   const canProceedStep2 = formData.house_type && formData.family_size;
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-4 sm:p-6">
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium">
@@ -97,7 +97,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
             className="space-y-6"
           >
             <div>
-              <h2 className="text-2xl font-bold mb-2">{t('aiForm.step1')}</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">{t('aiForm.step1')}</h2>
               <p className="text-muted-foreground">Tell us about your work location and budget</p>
             </div>
 
@@ -136,7 +136,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
             className="space-y-6"
           >
             <div>
-              <h2 className="text-2xl font-bold mb-2">{t('aiForm.step2')}</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">{t('aiForm.step2')}</h2>
               <p className="text-muted-foreground">Tell us about your housing preferences</p>
             </div>
 
@@ -147,7 +147,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
                   value={formData.house_type}
                   onValueChange={(value) => setFormData({ ...formData, house_type: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select house type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -165,7 +165,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
                   value={formData.family_size}
                   onValueChange={(value) => setFormData({ ...formData, family_size: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -191,16 +191,16 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
             className="space-y-6"
           >
             <div>
-              <h2 className="text-2xl font-bold mb-2">{t('aiForm.step3')}</h2>
+              <h2 className="text-2xl md:text-3xl font-bold mb-2">{t('aiForm.step3')}</h2>
               <p className="text-muted-foreground">Select your preferred amenities and language</p>
             </div>
 
             <div className="space-y-4">
               <div>
                 <Label className="mb-3 block">{t('aiForm.amenities')}</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {amenitiesOptions.map((amenity) => (
-                    <div key={amenity} className="flex items-center space-x-2">
+                    <div key={amenity} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 transition-colors">
                       <Checkbox
                         id={amenity}
                         checked={formData.amenities.includes(amenity)}
@@ -223,7 +223,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
                   value={formData.language}
                   onValueChange={(value) => setFormData({ ...formData, language: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -237,9 +237,9 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
         )}
       </AnimatePresence>
 
-      <div className="flex gap-3 mt-8">
+      <div className="flex flex-col sm:flex-row gap-3 mt-8">
         {step > 1 && (
-          <Button variant="outline" onClick={handleBack} disabled={isLoading}>
+          <Button variant="outline" onClick={handleBack} disabled={isLoading} className="w-full sm:w-auto">
             <ArrowLeft className="mr-2 h-4 w-4" />
             {t('aiForm.back')}
           </Button>
@@ -249,13 +249,13 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
           <Button
             onClick={handleNext}
             disabled={(step === 1 && !canProceedStep1) || (step === 2 && !canProceedStep2)}
-            className="flex-1"
+            className="w-full sm:flex-1"
           >
             {t('aiForm.next')}
             <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         ) : (
-          <Button onClick={handleSubmit} disabled={isLoading} className="flex-1">
+          <Button onClick={handleSubmit} disabled={isLoading} className="w-full sm:flex-1">
             <Sparkles className="mr-2 h-4 w-4" />
             {t('aiForm.generate')}
           </Button>
