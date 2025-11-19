@@ -36,6 +36,13 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
   const [likes, setLikes] = useState<number>(property.like_count ?? 0);
   const [dislikes, setDislikes] = useState<number>(property.dislike_count ?? 0);
 
+  // Compute a robust map URL from either preview_url or map_url and make it absolute if needed
+  const mapUrl = useMemo(() => {
+    const raw = property.preview_url || property.map_url || '';
+    if (!raw) return null;
+    return /^https?:/i.test(raw) ? raw : `${SEARCH_BASE}${raw}`;
+  }, [property.preview_url, property.map_url]);
+
   // Enhanced AI reason parsing with better structure
   const aiPoints = useMemo((): AIPoints | null => {
     const text: string = property.ai_reason || '';
@@ -149,9 +156,9 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
         whileHover={{ y: -5 }}
         transition={{ duration: 0.3 }}
       >
-        <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group cursor-pointer border border-gray-200/60 dark:border-gray-700/60 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
+        <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group cursor-pointer border bg-card">
           {/* Image Section */}
-          <div className="relative aspect-[4/3] bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-700 overflow-hidden">
+          <div className="relative aspect-[4/3] bg-muted/40 dark:bg-muted/20 overflow-hidden">
             {(property.image_url || (property.images && property.images[0])) ? (
               <img
                 src={property.image_url || property.images[0]}
@@ -164,8 +171,8 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
                 }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500/10 to-purple-500/10">
-                <Home className="h-16 w-16 text-blue-400/30" />
+              <div className="w-full h-full flex items-center justify-center bg-muted">
+                <Home className="h-16 w-16 text-muted-foreground/40" />
               </div>
             )}
             
@@ -208,20 +215,20 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
 
             {/* Price overlay */}
             <div className="absolute bottom-3 left-3 right-3">
-              <div className="bg-white/95 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-2xl border border-white/20">
+              <div className="bg-background/95 backdrop-blur-sm rounded-2xl px-4 py-3 shadow-2xl border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-bold text-2xl text-gray-900">
+                    <p className="font-bold text-2xl text-foreground">
                       {property.price ? formatCurrency(Number(property.price)) : '15,000'} ETB
                     </p>
-                    <p className="text-xs text-gray-600 font-medium">per month</p>
+                    <p className="text-xs text-muted-foreground font-medium">per month</p>
                   </div>
                   {property.affordability_score && (
                     <div className="text-right">
                       <div className={`text-lg font-bold ${getScoreColor(property.affordability_score)}`}>
                         {property.affordability_score}%
                       </div>
-                      <p className="text-xs text-gray-600 font-medium">Affordable</p>
+                      <p className="text-xs text-muted-foreground font-medium">Affordable</p>
                     </div>
                   )}
                 </div>
@@ -234,11 +241,11 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
             <div className="space-y-5">
               {/* Title and Location */}
               <div>
-                <h3 className="font-bold text-xl text-gray-900 dark:text-white leading-tight line-clamp-2">
+                <h3 className="font-bold text-xl text-foreground leading-tight line-clamp-2">
                   {property.title || 'Modern Luxury Apartment'}
                 </h3>
-                <div className="flex items-center text-gray-600 dark:text-gray-300 mt-2">
-                  <MapPin className="h-4 w-4 mr-2 flex-shrink-0 text-blue-500" />
+                <div className="flex items-center text-muted-foreground mt-2">
+                  <MapPin className="h-4 w-4 mr-2 flex-shrink-0 text-primary" />
                   <span className="text-sm font-medium">{property.location || 'Addis Ababa, Ethiopia'}</span>
                 </div>
               </div>
@@ -246,26 +253,26 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
               {/* Property Features */}
               <div className="grid grid-cols-3 gap-3 py-2">
                 {property.bedrooms && (
-                  <div className="text-center p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
-                    <Bed className="h-5 w-5 text-blue-600 dark:text-blue-400 mx-auto mb-1" />
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white">{property.bedrooms}</div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">Beds</div>
+                  <div className="text-center p-2 rounded-lg bg-muted/40 border border-border">
+                    <Bed className="h-5 w-5 text-primary mx-auto mb-1" />
+                    <div className="text-sm font-semibold text-foreground">{property.bedrooms}</div>
+                    <div className="text-xs text-muted-foreground">Beds</div>
                   </div>
                 )}
                 
                 {property.bathrooms && (
-                  <div className="text-center p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
-                    <Bath className="h-5 w-5 text-green-600 dark:text-green-400 mx-auto mb-1" />
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white">{property.bathrooms}</div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">Baths</div>
+                  <div className="text-center p-2 rounded-lg bg-muted/40 border border-border">
+                    <Bath className="h-5 w-5 text-primary mx-auto mb-1" />
+                    <div className="text-sm font-semibold text-foreground">{property.bathrooms}</div>
+                    <div className="text-xs text-muted-foreground">Baths</div>
                   </div>
                 )}
 
                 {property.area && (
-                  <div className="text-center p-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
-                    <Ruler className="h-5 w-5 text-purple-600 dark:text-purple-400 mx-auto mb-1" />
-                    <div className="text-sm font-semibold text-gray-900 dark:text-white">{property.area}m²</div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">Area</div>
+                  <div className="text-center p-2 rounded-lg bg-muted/40 border border-border">
+                    <Ruler className="h-5 w-5 text-primary mx-auto mb-1" />
+                    <div className="text-sm font-semibold text-foreground">{property.area}m²</div>
+                    <div className="text-xs text-muted-foreground">Area</div>
                   </div>
                 )}
               </div>
@@ -274,21 +281,21 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
               <div className="space-y-3">
                 {property.distance && (
                   <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Navigation className="h-4 w-4 text-blue-500" />
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Navigation className="h-4 w-4 text-primary" />
                       <span>Distance to center</span>
                     </div>
-                    <span className="font-semibold text-gray-900 dark:text-white">{property.distance.toFixed(1)} km</span>
+                    <span className="font-semibold text-foreground">{property.distance.toFixed(1)} km</span>
                   </div>
                 )}
 
                 {property.transport_cost && (
                   <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Car className="h-4 w-4 text-purple-500" />
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Car className="h-4 w-4 text-primary" />
                       <span>Monthly transport</span>
                     </div>
-                    <span className="font-semibold text-gray-900 dark:text-white">{formatCurrency(property.transport_cost)} ETB</span>
+                    <span className="font-semibold text-foreground">{formatCurrency(property.transport_cost)} ETB</span>
                   </div>
                 )}
               </div>
@@ -296,16 +303,16 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
               {/* Amenities */}
               {property.amenities && property.amenities.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">Key Features</p>
+                  <p className="text-sm font-semibold text-foreground">Key Features</p>
                   <div className="flex flex-wrap gap-2">
                     {property.amenities.slice(0, 3).map((amenity: string, idx: number) => (
-                      <Badge key={idx} variant="secondary" className="text-xs bg-gradient-to-r from-blue-50 to-blue-100 text-blue-700 border-blue-200 flex items-center gap-1">
+                      <Badge key={idx} variant="secondary" className="text-xs bg-muted text-foreground/80 border flex items-center gap-1">
                         {getAmenityIcon(amenity)}
                         {amenity}
                       </Badge>
                     ))}
                     {property.amenities.length > 3 && (
-                      <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-600">
+                      <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
                         +{property.amenities.length - 3} more
                       </Badge>
                     )}
@@ -318,20 +325,20 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
                 <motion.div 
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
-                  className="rounded-2xl border-2 border-blue-200 dark:border-blue-800 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5"
+                  className="rounded-2xl border bg-muted/40 p-5"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                    <div className="w-3 h-3 bg-primary rounded-full animate-pulse" />
                     <div className="flex-1">
-                      <h4 className="font-bold text-lg text-blue-900 dark:text-blue-100">
+                      <h4 className="font-bold text-lg text-foreground">
                         AI Recommendation
                       </h4>
-                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                      <p className="text-sm text-muted-foreground">
                         Why this property matches your preferences
                       </p>
                     </div>
                     {aiPoints?.fitScore && (
-                      <Badge className="bg-blue-600 text-white border-0 text-sm px-3 py-1">
+                      <Badge className="bg-primary text-primary-foreground border-0 text-sm px-3 py-1">
                         {aiPoints.fitScore}% Match
                       </Badge>
                     )}
@@ -342,8 +349,8 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
                       {/* Match Reasons */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {aiPoints.matchReasons?.slice(0, 4).map((reason, idx) => (
-                          <div key={idx} className="flex items-center gap-2 text-sm text-blue-800 dark:text-blue-200">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                          <div key={idx} className="flex items-center gap-2 text-sm text-foreground">
+                            <div className="w-2 h-2 bg-primary rounded-full" />
                             {reason}
                           </div>
                         ))}
@@ -352,17 +359,17 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
                       {/* Score Breakdown */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-700 dark:text-gray-300">Location Match</span>
+                          <span className="text-muted-foreground">Location Match</span>
                           <div className="flex items-center gap-2">
                             <Progress value={aiPoints.fitScore || 85} className="w-20 h-2" />
-                            <span className="font-semibold text-gray-900 dark:text-white">{aiPoints.fitScore || 85}%</span>
+                            <span className="font-semibold text-foreground">{aiPoints.fitScore || 85}%</span>
                           </div>
                         </div>
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-700 dark:text-gray-300">Value Score</span>
+                          <span className="text-muted-foreground">Value Score</span>
                           <div className="flex items-center gap-2">
                             <Progress value={aiPoints.valueScore || 78} className="w-20 h-2" />
-                            <span className="font-semibold text-gray-900 dark:text-white">{aiPoints.valueScore || 78}%</span>
+                            <span className="font-semibold text-foreground">{aiPoints.valueScore || 78}%</span>
                           </div>
                         </div>
                       </div>
@@ -371,19 +378,19 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
                       <div className="grid grid-cols-3 gap-3 pt-2">
                         {aiPoints.distanceKm !== undefined && (
                           <div className="text-center">
-                            <div className="text-xs text-gray-600">Distance</div>
-                            <div className="font-bold text-gray-900 dark:text-white">{aiPoints.distanceKm}km</div>
+                            <div className="text-xs text-muted-foreground">Distance</div>
+                            <div className="font-bold text-foreground">{aiPoints.distanceKm}km</div>
                           </div>
                         )}
                         {aiPoints.transportETB !== undefined && (
                           <div className="text-center">
-                            <div className="text-xs text-gray-600">Transport</div>
-                            <div className="font-bold text-gray-900 dark:text-white">{formatCurrency(aiPoints.transportETB)}</div>
+                            <div className="text-xs text-muted-foreground">Transport</div>
+                            <div className="font-bold text-foreground">{formatCurrency(aiPoints.transportETB)}</div>
                           </div>
                         )}
                         {aiPoints.remainingETB !== undefined && (
                           <div className="text-center">
-                            <div className="text-xs text-gray-600">Remaining</div>
+                            <div className="text-xs text-muted-foreground">Remaining</div>
                             <div className={`font-bold ${aiPoints.remainingETB >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {aiPoints.remainingETB >= 0 ? '+' : ''}{formatCurrency(aiPoints.remainingETB)}
                             </div>
@@ -392,7 +399,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
                       </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-line">
                       {property.ai_reason}
                     </p>
                   )}
@@ -403,20 +410,17 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
               <div className="flex gap-3 pt-2">
                 <Button
                   variant="default"
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg text-white font-semibold py-2.5"
+                  className="flex-1"
                   onClick={() => setDetailsOpen(true)}
                 >
                   {t('properties.viewDetails') || 'View Full Details'}
                 </Button>
-                {property.preview_url && (
+                {mapUrl && (
                   <Button
                     variant="outline"
-                    className="border-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 font-semibold py-2.5"
+                    className="font-semibold"
                     onClick={() => {
-                      const url = /^https?:/i.test(property.preview_url)
-                        ? property.preview_url
-                        : `${SEARCH_BASE}${property.preview_url}`;
-                      window.open(url, '_blank');
+                      window.open(mapUrl, '_blank');
                     }}
                   >
                     {t('properties.viewOnMap') || 'View Map'}
@@ -486,7 +490,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
                       >
                         <textarea
                           placeholder={t('add_feedback_note') || 'Help us improve: share your thoughts about this recommendation...'}
-                          className="w-full text-sm p-3 rounded-xl border-2 border-gray-200 bg-white resize-none min-h-[80px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                          className="w-full text-sm p-3 rounded-xl border border-input bg-background text-foreground resize-none min-h-[80px] focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                           value={note}
                           onChange={(e) => setNote(e.target.value)}
                         />
@@ -588,11 +592,11 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
             )}
 
             {/* Map */}
-            {property.preview_url && (
+            {mapUrl && (
               <div>
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Location</h3>
                 <iframe
-                  src={/^https?:/i.test(property.preview_url) ? property.preview_url : `${SEARCH_BASE}${property.preview_url}`}
+                  src={mapUrl}
                   className="w-full h-96 rounded-2xl border-0 shadow-lg"
                   title="Property Location"
                   loading="lazy"
