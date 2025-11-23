@@ -47,13 +47,18 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
 
   // Compute full image URL from backend
   const imageUrl = useMemo(() => {
-    const raw = property.image_url || property.preview_url || (property.images && property.images.length > 0 ? property.images[0] : null);
+    // Check multiple possible field names for images
+    const raw = property.image_url || 
+                property.photo || 
+                property.photos?.[0] || 
+                property.preview_url || 
+                (property.images && property.images.length > 0 ? property.images[0] : null);
     if (!raw) return null;
     // If it's already a full URL, return it
     if (/^https?:/i.test(raw)) return raw;
     // Otherwise, construct full URL from backend base
     return `${SEARCH_BASE}${raw.startsWith('/') ? raw : '/' + raw}`;
-  }, [property.image_url, property.preview_url, property.images]);
+  }, [property.image_url, property.photo, property.photos, property.preview_url, property.images]);
 
   // Enhanced AI reason parsing with better structure
   const aiPoints = useMemo((): AIPoints | null => {

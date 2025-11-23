@@ -141,7 +141,7 @@ const Index = () => {
         affordability_score: r.affordability_score,
         ai_reason: r.reason,
         preview_url: r.map_url,
-        image_url: r.images?.[0],
+        image_url: r.images?.[0] || r.image_url || r.photo || r.photos?.[0],
         amenities: r.details?.amenities || [],
         house_type: r.details?.house_type,
         distance: r.route?.distance_km,
