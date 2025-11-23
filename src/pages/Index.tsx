@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isAxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -34,13 +35,18 @@ const Index = () => {
 
   // Debounce filters to avoid firing too many requests (429s)
   const [debouncedFilters, setDebouncedFilters] = useState(filters);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   useEffect(() => {
-    const id = setTimeout(() => setDebouncedFilters(filters), 500);
+    const id = setTimeout(() => setDebouncedFilters(filters), 700);
     return () => clearTimeout(id);
   }, [filters]);
 
   const isValidRange = (min?: number, max?: number) =>
     min === undefined || max === undefined || min <= max;
+  const getPriceRange = () => ({
+    min: debouncedFilters.min_price ? Number(debouncedFilters.min_price) : undefined,
+    max: debouncedFilters.max_price ? Number(debouncedFilters.max_price) : undefined,
+  });
 
   // Browse properties with filters
   const { data: properties, isLoading: propertiesLoading, refetch: refetchProperties } = useQuery<{ results: any[] }>({
@@ -56,13 +62,28 @@ const Index = () => {
       },
       { signal }
     ),
-    // Auto-fetch when debounced filters change and values are valid
-    enabled: HAS_PROPERTY_SEARCH && isValidRange(
-      debouncedFilters.min_price ? Number(debouncedFilters.min_price) : undefined,
-      debouncedFilters.max_price ? Number(debouncedFilters.max_price) : undefined
-    ),
+    // Auto-fetch only when BOTH min and max are provided and the range is valid
+    enabled: (() => {
+      if (!HAS_PROPERTY_SEARCH) return false;
+      if (cooldownUntil && Date.now() < cooldownUntil) return false;
+      const { min, max } = getPriceRange();
+      const hasBoth = min !== undefined && max !== undefined;
+      return hasBoth && isValidRange(min, max);
+    })(),
     // v5 replacement for keepPreviousData
     placeholderData: (prev) => prev,
+    retry: false,
+    staleTime: 20_000,
+    refetchOnReconnect: false,
+    // Avoid background refetches that can lead to duplicate calls / 429s
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    onError: (err) => {
+      if (isAxiosError(err) && err.response?.status === 429) {
+        // Enter a short cooldown to avoid hammering the backend
+        setCooldownUntil(Date.now() + 2000);
+      }
+    },
   });
 
   // Recommendations history
@@ -388,13 +409,21 @@ const Index = () => {
                       onClick={() => {
                         const min = filters.min_price ? Number(filters.min_price) : undefined;
                         const max = filters.max_price ? Number(filters.max_price) : undefined;
-                        if (min !== undefined && max !== undefined && min > max) {
-                          toast.error('Min price cannot be greater than max price');
+                        if (cooldownUntil && Date.now() < cooldownUntil) {
+                          const wait = Math.ceil((cooldownUntil - Date.now()) / 1000);
+                          toast.error(`Please wait ${wait}s and try again (rate limited).`);
+                          return;
+                        }
+                        if (min === undefined || max === undefined) {
+                          toast.error('Please enter both Min and Max price');
+                          return;
+                        }
+                        if (min > max) {
+                          toast.error('Min price cannot be greater than Max price');
                           return;
                         }
                         // Force an immediate fetch using current filter values
                         setDebouncedFilters(filters);
-                        refetchProperties();
                       }}
                       className="sm:w-auto"
                     >

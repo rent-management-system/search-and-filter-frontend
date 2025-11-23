@@ -43,7 +43,11 @@ function createAxios(baseURL: string): AxiosInstance {
         const maxRetries = 1;
         if (cfg.__retryCount < maxRetries) {
           cfg.__retryCount += 1;
-          const delay = Math.min(1000 * 2 ** (cfg.__retryCount - 1), 4000);
+          // Respect server-provided Retry-After for 429 if available
+          const retryAfter = Number(error.response?.headers?.['retry-after']);
+          const delay = Number.isFinite(retryAfter) && retryAfter > 0
+            ? Math.min(retryAfter * 1000, 5000)
+            : 1000;
           await new Promise((res) => setTimeout(res, delay));
           return instance(cfg);
         }
