@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -29,20 +29,36 @@ const Dashboard = () => {
     max_distance_km: 20,
     sort_by: 'distance',
   });
+  // Only fetch when user explicitly submits via Search
+  const [submittedFilters, setSubmittedFilters] = useState<typeof filters | null>(null);
 
-  // Browse properties (tenant view) with filters
-  const { data: properties, isLoading: propertiesLoading, refetch: refetchProperties } = useQuery({
-    queryKey: ['dashboard-properties', filters],
-    queryFn: () => propertyAPI.search({
-      min_price: filters.min_price ? Number(filters.min_price) : undefined,
-      max_price: filters.max_price ? Number(filters.max_price) : undefined,
-      house_type: filters.house_type || undefined,
-      amenities: filters.amenities.length ? filters.amenities : undefined,
-      max_distance_km: filters.max_distance_km,
-      sort_by: filters.sort_by,
-    }),
-    enabled: HAS_PROPERTY_SEARCH,
+  // Browse properties (tenant view) with filters — manual submission only
+  const { data: properties, isLoading: propertiesLoading, error: propertiesError } = useQuery({
+    queryKey: ['dashboard-properties', submittedFilters],
+    queryFn: () => {
+      const f = submittedFilters!;
+      return propertyAPI.search({
+        min_price: f.min_price ? Number(f.min_price) : undefined,
+        max_price: f.max_price ? Number(f.max_price) : undefined,
+        house_type: f.house_type || undefined,
+        amenities: f.amenities.length ? f.amenities : undefined,
+        max_distance_km: f.max_distance_km,
+        sort_by: f.sort_by,
+      });
+    },
+    enabled: HAS_PROPERTY_SEARCH && !!submittedFilters,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: 20_000,
+    retry: false,
   });
+
+  // Optional: throttle further searches briefly on 429
+  useEffect(() => {
+    // If needed, we could add a local cooldown here similar to Index.tsx
+    void propertiesError;
+  }, [propertiesError]);
 
   // My recommendations
   const { data: recommendationsHistory, isLoading: historyLoading } = useQuery({
@@ -345,7 +361,13 @@ const Dashboard = () => {
 
                     {/* Actions */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-4">
-                      <Button onClick={() => refetchProperties()} className="sm:w-auto">
+                      <Button
+                        disabled={propertiesLoading}
+                        onClick={() => {
+                          setSubmittedFilters({ ...filters });
+                        }}
+                        className="sm:w-auto"
+                      >
                         Search
                       </Button>
                       <Button
