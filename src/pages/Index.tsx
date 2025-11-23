@@ -32,41 +32,37 @@ const Index = () => {
     max_distance_km: 20,
     sort_by: 'distance',
   });
-
-  // Debounce filters to avoid firing too many requests (429s)
-  const [debouncedFilters, setDebouncedFilters] = useState(filters);
+  // Only fetch when user explicitly submits via Search
+  const [submittedFilters, setSubmittedFilters] = useState<typeof filters | null>(null);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
-  useEffect(() => {
-    const id = setTimeout(() => setDebouncedFilters(filters), 700);
-    return () => clearTimeout(id);
-  }, [filters]);
 
   const isValidRange = (min?: number, max?: number) =>
     min === undefined || max === undefined || min <= max;
-  const getPriceRange = () => ({
-    min: debouncedFilters.min_price ? Number(debouncedFilters.min_price) : undefined,
-    max: debouncedFilters.max_price ? Number(debouncedFilters.max_price) : undefined,
-  });
 
   // Browse properties with filters
-  const { data: properties, isLoading: propertiesLoading, refetch: refetchProperties } = useQuery<{ results: any[] }>({
-    queryKey: ['properties', debouncedFilters],
-    queryFn: ({ signal }) => propertyAPI.search(
-      {
-        min_price: debouncedFilters.min_price ? Number(debouncedFilters.min_price) : undefined,
-        max_price: debouncedFilters.max_price ? Number(debouncedFilters.max_price) : undefined,
-        house_type: debouncedFilters.house_type || undefined,
-        amenities: debouncedFilters.amenities.length ? debouncedFilters.amenities : undefined,
-        max_distance_km: debouncedFilters.max_distance_km,
-        sort_by: debouncedFilters.sort_by,
-      },
-      { signal }
-    ),
-    // Auto-fetch only when BOTH min and max are provided and the range is valid
+  const { data: properties, isLoading: propertiesLoading, error: propertiesError } = useQuery<{ results: any[] }>({
+    queryKey: ['properties', submittedFilters],
+    queryFn: ({ signal }) => {
+      const f = submittedFilters!;
+      return propertyAPI.search(
+        {
+          min_price: f.min_price ? Number(f.min_price) : undefined,
+          max_price: f.max_price ? Number(f.max_price) : undefined,
+          house_type: f.house_type || undefined,
+          amenities: f.amenities.length ? f.amenities : undefined,
+          max_distance_km: f.max_distance_km,
+          sort_by: f.sort_by,
+        },
+        { signal }
+      );
+    },
+    // Fetch only after user clicks Search and inputs are valid
     enabled: (() => {
       if (!HAS_PROPERTY_SEARCH) return false;
+      if (!submittedFilters) return false;
       if (cooldownUntil && Date.now() < cooldownUntil) return false;
-      const { min, max } = getPriceRange();
+      const min = submittedFilters.min_price ? Number(submittedFilters.min_price) : undefined;
+      const max = submittedFilters.max_price ? Number(submittedFilters.max_price) : undefined;
       const hasBoth = min !== undefined && max !== undefined;
       return hasBoth && isValidRange(min, max);
     })(),
@@ -78,13 +74,14 @@ const Index = () => {
     // Avoid background refetches that can lead to duplicate calls / 429s
     refetchOnWindowFocus: false,
     refetchOnMount: false,
-    onError: (err) => {
-      if (isAxiosError(err) && err.response?.status === 429) {
-        // Enter a short cooldown to avoid hammering the backend
-        setCooldownUntil(Date.now() + 2000);
-      }
-    },
   });
+
+  // Enter a short cooldown on 429 errors
+  useEffect(() => {
+    if (isAxiosError(propertiesError) && propertiesError.response?.status === 429) {
+      setCooldownUntil(Date.now() + 2000);
+    }
+  }, [propertiesError]);
 
   // Recommendations history
   const { data: recommendationsHistory, isLoading: historyLoading } = useQuery({
@@ -406,6 +403,7 @@ const Index = () => {
                   {/* Actions */}
                   <div className="flex flex-col sm:flex-row gap-3 mt-4">
                     <Button
+                      disabled={propertiesLoading}
                       onClick={() => {
                         const min = filters.min_price ? Number(filters.min_price) : undefined;
                         const max = filters.max_price ? Number(filters.max_price) : undefined;
@@ -422,8 +420,8 @@ const Index = () => {
                           toast.error('Min price cannot be greater than Max price');
                           return;
                         }
-                        // Force an immediate fetch using current filter values
-                        setDebouncedFilters(filters);
+                        // Submit filters to trigger a single query run
+                        setSubmittedFilters({ ...filters });
                       }}
                       className="sm:w-auto"
                     >
