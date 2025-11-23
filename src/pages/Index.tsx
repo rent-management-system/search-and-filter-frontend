@@ -475,9 +475,17 @@ const Index = () => {
                         step={1}
                         value={filters.max_distance_km}
                         onChange={(e) => {
-                          const newFilters = { ...filters, max_distance_km: Number(e.target.value) };
-                          setFilters(newFilters);
-                          if (selectedPriceRange) setSubmittedFilters(newFilters);
+                          setFilters({ ...filters, max_distance_km: Number(e.target.value) });
+                        }}
+                        onMouseUp={(e) => {
+                          if (selectedPriceRange) {
+                            setSubmittedFilters({ ...filters, max_distance_km: Number((e.target as HTMLInputElement).value) });
+                          }
+                        }}
+                        onTouchEnd={(e) => {
+                          if (selectedPriceRange) {
+                            setSubmittedFilters({ ...filters, max_distance_km: Number((e.target as HTMLInputElement).value) });
+                          }
                         }}
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                       />

@@ -161,10 +161,10 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
         <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group cursor-pointer border bg-card">
           {/* Image Section */}
           <div className="relative aspect-[4/3] bg-muted/40 dark:bg-muted/20 overflow-hidden">
-            {(property.image_url || (property.images && property.images[0])) ? (
+            {(property.image_url || property.preview_url || (property.images && property.images.length > 0 && property.images[0])) ? (
               <img
-                src={property.image_url || property.images[0]}
-                alt={property.title}
+                src={property.image_url || property.preview_url || property.images[0]}
+                alt={property.title || 'Property'}
                 className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                 onError={(e) => {
                   const target = e.currentTarget as HTMLImageElement;
@@ -633,12 +633,17 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-0">
           <div className="relative">
-            {property.image_url && (
+            {(property.image_url || property.preview_url || (property.images && property.images.length > 0)) && (
               <div className="relative h-96 w-full">
                 <img
-                  src={property.image_url}
-                  alt={property.title}
+                  src={property.image_url || property.preview_url || property.images[0]}
+                  alt={property.title || 'Property'}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.currentTarget as HTMLImageElement;
+                    target.onerror = null;
+                    target.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1600&auto=format&fit=crop';
+                  }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
               </div>
@@ -706,9 +711,9 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
             )}
 
             {/* Map */}
-            {mapUrl && (
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Location</h3>
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Location</h3>
+              {mapUrl ? (
                 <iframe
                   src={mapUrl}
                   className="w-full h-96 rounded-2xl border-0 shadow-lg"
@@ -717,8 +722,37 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   referrerPolicy="no-referrer-when-downgrade"
                   allowFullScreen
                 />
-              </div>
-            )}
+              ) : (
+                <div className="w-full h-96 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-muted/30 flex flex-col items-center justify-center gap-4">
+                  <MapPin className="h-16 w-16 text-muted-foreground/40" />
+                  <div className="text-center space-y-2">
+                    <p className="font-semibold text-foreground">
+                      {property.location || 'Location information available'}
+                    </p>
+                    {(property.lat && property.lon) ? (
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Coordinates: {property.lat.toFixed(6)}, {property.lon.toFixed(6)}
+                        </p>
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => window.open(`https://www.google.com/maps?q=${property.lat},${property.lon}`, '_blank')}
+                          className="gap-2"
+                        >
+                          <MapPin className="h-4 w-4" />
+                          Open in Google Maps
+                        </Button>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Interactive map coming soon
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
