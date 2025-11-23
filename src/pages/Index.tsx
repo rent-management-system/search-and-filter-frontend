@@ -311,6 +311,7 @@ const Index = () => {
                           key={idx}
                           property={property}
                           showAIReason
+                          showContactOwner={true}
                           onFeedback={async (feedback) => {
                             if (!tenantPrefId) return;
                             try {
@@ -556,7 +557,7 @@ const Index = () => {
               ) : properties?.results?.length > 0 ? (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {properties.results.map((property: any, idx: number) => (
-                    <PropertyCard key={idx} property={property} />
+                    <PropertyCard key={idx} property={property} showContactOwner={true} />
                   ))}
                 </div>
               ) : (
