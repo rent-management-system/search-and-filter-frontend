@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AIRecommendationForm } from '@/components/properties/AIRecommendationForm';
 import { PropertyCard } from '@/components/PropertyCard';
 import { recommendationAPI, propertyAPI, HAS_PROPERTY_SEARCH } from '@/lib/api';
+import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/store';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, Search, History, BookmarkCheck, Mail, Phone, MapPin } from 'lucide-react';
@@ -31,18 +32,34 @@ const Index = () => {
     sort_by: 'distance',
   });
 
+  // Debounce filters to avoid firing too many requests (429s)
+  const [debouncedFilters, setDebouncedFilters] = useState(filters);
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedFilters(filters), 500);
+    return () => clearTimeout(id);
+  }, [filters]);
+
+  const isValidRange = (min?: number, max?: number) =>
+    min === undefined || max === undefined || min <= max;
+
   // Browse properties with filters
-  const { data: properties, isLoading: propertiesLoading, refetch: refetchProperties } = useQuery({
-    queryKey: ['properties', filters],
+  const { data: properties, isLoading: propertiesLoading, refetch: refetchProperties } = useQuery<{ results: any[] }>({
+    queryKey: ['properties', debouncedFilters],
     queryFn: () => propertyAPI.search({
-      min_price: filters.min_price ? Number(filters.min_price) : undefined,
-      max_price: filters.max_price ? Number(filters.max_price) : undefined,
-      house_type: filters.house_type || undefined,
-      amenities: filters.amenities.length ? filters.amenities : undefined,
-      max_distance_km: filters.max_distance_km,
-      sort_by: filters.sort_by,
+      min_price: debouncedFilters.min_price ? Number(debouncedFilters.min_price) : undefined,
+      max_price: debouncedFilters.max_price ? Number(debouncedFilters.max_price) : undefined,
+      house_type: debouncedFilters.house_type || undefined,
+      amenities: debouncedFilters.amenities.length ? debouncedFilters.amenities : undefined,
+      max_distance_km: debouncedFilters.max_distance_km,
+      sort_by: debouncedFilters.sort_by,
     }),
-    enabled: HAS_PROPERTY_SEARCH,
+    // Auto-fetch when debounced filters change and values are valid
+    enabled: HAS_PROPERTY_SEARCH && isValidRange(
+      debouncedFilters.min_price ? Number(debouncedFilters.min_price) : undefined,
+      debouncedFilters.max_price ? Number(debouncedFilters.max_price) : undefined
+    ),
+    // v5 replacement for keepPreviousData
+    placeholderData: (prev) => prev,
   });
 
   // Recommendations history
@@ -365,7 +382,17 @@ const Index = () => {
                   {/* Actions */}
                   <div className="flex flex-col sm:flex-row gap-3 mt-4">
                     <Button
-                      onClick={() => refetchProperties()}
+                      onClick={() => {
+                        const min = filters.min_price ? Number(filters.min_price) : undefined;
+                        const max = filters.max_price ? Number(filters.max_price) : undefined;
+                        if (min !== undefined && max !== undefined && min > max) {
+                          toast.error('Min price cannot be greater than max price');
+                          return;
+                        }
+                        // Force an immediate fetch using current filter values
+                        setDebouncedFilters(filters);
+                        refetchProperties();
+                      }}
                       className="sm:w-auto"
                     >
                       Search

@@ -33,9 +33,21 @@ function createAxios(baseURL: string): AxiosInstance {
   // Response interceptor for error handling
   instance.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
       const status = error.response?.status;
       const message = error.response?.data?.message || 'An error occurred';
+      // Basic retry for transient errors (rate limit / service unavailable)
+      if (status === 429 || status === 503) {
+        const cfg = error.config || {};
+        cfg.__retryCount = cfg.__retryCount || 0;
+        const maxRetries = 2;
+        if (cfg.__retryCount < maxRetries) {
+          cfg.__retryCount += 1;
+          const delay = Math.min(1000 * 2 ** (cfg.__retryCount - 1), 4000);
+          await new Promise((res) => setTimeout(res, delay));
+          return instance(cfg);
+        }
+      }
       // Do not auto-redirect or clear token on background 401s.
       // Surface a clear toast but keep user state intact.
       if (status === 401) {
