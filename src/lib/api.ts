@@ -40,7 +40,7 @@ function createAxios(baseURL: string): AxiosInstance {
       if (status === 429 || status === 503) {
         const cfg = error.config || {};
         cfg.__retryCount = cfg.__retryCount || 0;
-        const maxRetries = 2;
+        const maxRetries = 1;
         if (cfg.__retryCount < maxRetries) {
           cfg.__retryCount += 1;
           const delay = Math.min(1000 * 2 ** (cfg.__retryCount - 1), 4000);
@@ -50,12 +50,17 @@ function createAxios(baseURL: string): AxiosInstance {
       }
       // Do not auto-redirect or clear token on background 401s.
       // Surface a clear toast but keep user state intact.
+      const url = error.config?.url || '';
       if (status === 401) {
-        console.warn('Unauthorized API response (401) from', error.config?.url);
-        toast.error('Session issue with a service. Please try again.');
+        console.warn('Unauthorized API response (401) from', url);
+        toast.error(`401 from ${url}. Please sign in again or try later.`);
+      } else if (status === 429) {
+        toast.error(`Rate limited (429) on ${url}. Please wait a moment and try again.`);
+      } else if (status === 400) {
+        toast.error(message || `Invalid request (400) on ${url}. Adjust filters and try again.`);
       } else {
         // Avoid overly noisy toasts from background requests; still inform the user.
-        toast.error(message);
+        toast.error(`${message}${status ? ` (HTTP ${status})` : ''}`);
       }
       return Promise.reject(error);
     }
@@ -68,9 +73,9 @@ export const searchApi = createAxios(SEARCH_API_BASE);
 
 // API functions
 export const propertyAPI = {
-  search: async (params: any) => {
+  search: async (params: any, config?: any) => {
     // Render service returns an array; normalize to { results }
-    const { data } = await searchApi.get('/search', { params });
+    const { data } = await searchApi.get('/search', { params, ...(config || {}) });
     return Array.isArray(data) ? { results: data } : data;
   },
   

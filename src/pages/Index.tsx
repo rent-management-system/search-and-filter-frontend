@@ -45,14 +45,17 @@ const Index = () => {
   // Browse properties with filters
   const { data: properties, isLoading: propertiesLoading, refetch: refetchProperties } = useQuery<{ results: any[] }>({
     queryKey: ['properties', debouncedFilters],
-    queryFn: () => propertyAPI.search({
-      min_price: debouncedFilters.min_price ? Number(debouncedFilters.min_price) : undefined,
-      max_price: debouncedFilters.max_price ? Number(debouncedFilters.max_price) : undefined,
-      house_type: debouncedFilters.house_type || undefined,
-      amenities: debouncedFilters.amenities.length ? debouncedFilters.amenities : undefined,
-      max_distance_km: debouncedFilters.max_distance_km,
-      sort_by: debouncedFilters.sort_by,
-    }),
+    queryFn: ({ signal }) => propertyAPI.search(
+      {
+        min_price: debouncedFilters.min_price ? Number(debouncedFilters.min_price) : undefined,
+        max_price: debouncedFilters.max_price ? Number(debouncedFilters.max_price) : undefined,
+        house_type: debouncedFilters.house_type || undefined,
+        amenities: debouncedFilters.amenities.length ? debouncedFilters.amenities : undefined,
+        max_distance_km: debouncedFilters.max_distance_km,
+        sort_by: debouncedFilters.sort_by,
+      },
+      { signal }
+    ),
     // Auto-fetch when debounced filters change and values are valid
     enabled: HAS_PROPERTY_SEARCH && isValidRange(
       debouncedFilters.min_price ? Number(debouncedFilters.min_price) : undefined,
