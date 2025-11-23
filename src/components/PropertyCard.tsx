@@ -723,14 +723,19 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   allowFullScreen
                 />
               ) : (
-                <div className="w-full h-96 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-muted/30 flex flex-col items-center justify-center gap-4">
-                  <MapPin className="h-16 w-16 text-muted-foreground/40" />
-                  <div className="text-center space-y-2">
-                    <p className="font-semibold text-foreground">
+                <div className="w-full h-96 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gradient-to-br from-muted/30 to-muted/10 flex flex-col items-center justify-center gap-4 p-8">
+                  <div className="relative">
+                    <MapPin className="h-16 w-16 text-muted-foreground/40" />
+                    <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-amber-500 flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">!</span>
+                    </div>
+                  </div>
+                  <div className="text-center space-y-3 max-w-md">
+                    <p className="font-semibold text-foreground text-lg">
                       {property.location || 'Location information available'}
                     </p>
                     {(property.lat && property.lon) ? (
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">
                           Coordinates: {property.lat.toFixed(6)}, {property.lon.toFixed(6)}
                         </p>
@@ -745,9 +750,14 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                         </Button>
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Interactive map coming soon
-                      </p>
+                      <div className="space-y-2">
+                        <p className="text-sm text-muted-foreground font-medium">
+                          🔒 Interactive maps not supported in current API plan
+                        </p>
+                        <p className="text-xs text-muted-foreground/80">
+                          Upgrade to Pro to unlock interactive maps and advanced location features
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
