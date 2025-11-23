@@ -34,12 +34,15 @@ function createAxios(baseURL: string): AxiosInstance {
   instance.interceptors.response.use(
     (response) => response,
     (error) => {
+      const status = error.response?.status;
       const message = error.response?.data?.message || 'An error occurred';
-      if (error.response?.status === 401) {
-        localStorage.removeItem('authToken');
-        window.location.href = '/';
-        toast.error('Session expired. Please login again.');
+      // Do not auto-redirect or clear token on background 401s.
+      // Surface a clear toast but keep user state intact.
+      if (status === 401) {
+        console.warn('Unauthorized API response (401) from', error.config?.url);
+        toast.error('Session issue with a service. Please try again.');
       } else {
+        // Avoid overly noisy toasts from background requests; still inform the user.
         toast.error(message);
       }
       return Promise.reject(error);

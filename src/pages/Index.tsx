@@ -49,7 +49,9 @@ const Index = () => {
   const { data: recommendationsHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['my-recommendations'],
     queryFn: recommendationAPI.getMine,
-    enabled: isAuthenticated,
+    // Disable auto-fetch on landing to prevent noisy errors if a backend rejects the token.
+    // Fetch can be triggered explicitly from the dashboard page instead.
+    enabled: false,
   });
 
   const handleGenerateRecommendations = async (formData: any) => {
