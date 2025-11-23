@@ -60,6 +60,23 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
     return `${SEARCH_BASE}${raw.startsWith('/') ? raw : '/' + raw}`;
   }, [property.image_url, property.photo, property.photos, property.preview_url, property.images]);
 
+  // Extract owner contact information from nested object or direct properties
+  const ownerContact = useMemo(() => {
+    if (property.owner_contact) {
+      return {
+        name: property.owner_contact.name,
+        email: property.owner_contact.email,
+        phone: property.owner_contact.phone,
+      };
+    }
+    // Fallback to direct properties if owner_contact doesn't exist
+    return {
+      name: property.owner_name,
+      email: property.owner_email,
+      phone: property.owner_phone,
+    };
+  }, [property.owner_contact, property.owner_name, property.owner_email, property.owner_phone]);
+
   // Enhanced AI reason parsing with better structure
   const aiPoints = useMemo((): AIPoints | null => {
     const text: string = property.ai_reason || '';
@@ -557,57 +574,57 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
           <div className="space-y-6 py-4">
             {/* Owner Information */}
             <div className="space-y-4">
-              {property.owner_name && (
+              {ownerContact.name && (
                 <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
                   <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Owner Name</p>
-                    <p className="font-semibold text-foreground">{property.owner_name}</p>
+                    <p className="font-semibold text-foreground">{ownerContact.name}</p>
                   </div>
                 </div>
               )}
               
-              {property.owner_phone && (
+              {ownerContact.phone && (
                 <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
                   <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
                     <Phone className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Phone Number</p>
-                    <p className="font-semibold text-foreground">{property.owner_phone}</p>
+                    <p className="font-semibold text-foreground">{ownerContact.phone}</p>
                   </div>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => window.open(`tel:${property.owner_phone}`, '_self')}
+                    onClick={() => window.open(`tel:${ownerContact.phone}`, '_self')}
                   >
                     Call
                   </Button>
                 </div>
               )}
               
-              {property.owner_email && (
+              {ownerContact.email && (
                 <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
                   <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                     <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm text-muted-foreground">Email Address</p>
-                    <p className="font-semibold text-foreground text-sm">{property.owner_email}</p>
+                    <p className="font-semibold text-foreground text-sm">{ownerContact.email}</p>
                   </div>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => window.open(`mailto:${property.owner_email}`, '_blank')}
+                    onClick={() => window.open(`mailto:${ownerContact.email}`, '_blank')}
                   >
                     Email
                   </Button>
                 </div>
               )}
               
-              {!property.owner_phone && !property.owner_email && !property.owner_name && (
+              {!ownerContact.phone && !ownerContact.email && !ownerContact.name && (
                 <div className="text-center py-8 text-muted-foreground">
                   <Phone className="h-12 w-12 mx-auto mb-3 opacity-50" />
                   <p>Contact information not available</p>
