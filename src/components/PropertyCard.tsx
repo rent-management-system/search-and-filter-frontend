@@ -45,6 +45,16 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
     return /^https?:/i.test(raw) ? raw : `${SEARCH_BASE}${raw}`;
   }, [property.preview_url, property.map_url]);
 
+  // Compute full image URL from backend
+  const imageUrl = useMemo(() => {
+    const raw = property.image_url || property.preview_url || (property.images && property.images.length > 0 ? property.images[0] : null);
+    if (!raw) return null;
+    // If it's already a full URL, return it
+    if (/^https?:/i.test(raw)) return raw;
+    // Otherwise, construct full URL from backend base
+    return `${SEARCH_BASE}${raw.startsWith('/') ? raw : '/' + raw}`;
+  }, [property.image_url, property.preview_url, property.images]);
+
   // Enhanced AI reason parsing with better structure
   const aiPoints = useMemo((): AIPoints | null => {
     const text: string = property.ai_reason || '';
@@ -161,9 +171,9 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
         <Card className="overflow-hidden hover:shadow-2xl transition-all duration-300 group cursor-pointer border bg-card">
           {/* Image Section */}
           <div className="relative aspect-[4/3] bg-muted/40 dark:bg-muted/20 overflow-hidden">
-            {(property.image_url || property.preview_url || (property.images && property.images.length > 0 && property.images[0])) ? (
+            {imageUrl ? (
               <img
-                src={property.image_url || property.preview_url || property.images[0]}
+                src={imageUrl}
                 alt={property.title || 'Property'}
                 className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                 onError={(e) => {
@@ -633,10 +643,10 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-0">
           <div className="relative">
-            {(property.image_url || property.preview_url || (property.images && property.images.length > 0)) && (
+            {imageUrl && (
               <div className="relative h-96 w-full">
                 <img
-                  src={property.image_url || property.preview_url || property.images[0]}
+                  src={imageUrl}
                   alt={property.title || 'Property'}
                   className="w-full h-full object-cover"
                   onError={(e) => {
