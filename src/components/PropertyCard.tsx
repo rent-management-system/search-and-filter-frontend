@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { MapPin, Heart, ThumbsUp, ThumbsDown, Car, DollarSign, Home, Award, CheckCircle2, Star, Navigation, Bed, Bath, Ruler, Wifi, Car as CarIcon, Utensils } from 'lucide-react';
+import { MapPin, Heart, ThumbsUp, ThumbsDown, Car, DollarSign, Home, Award, CheckCircle2, Star, Navigation, Bed, Bath, Ruler, Wifi, Car as CarIcon, Utensils, Phone, Mail, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ interface PropertyCardProps {
   property: any;
   showAIReason?: boolean;
   onFeedback?: (feedback: 'like' | 'dislike') => void;
+  showContactOwner?: boolean;
 }
 
 interface AIPoints {
@@ -28,9 +29,10 @@ interface AIPoints {
   matchReasons?: string[];
 }
 
-export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCardProps) => {
+export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOwner }: PropertyCardProps) => {
   const { t } = useTranslation();
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [contactOpen, setContactOpen] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState<'like' | 'dislike' | null>(null);
   const [note, setNote] = useState('');
   const [likes, setLikes] = useState<number>(property.like_count ?? 0);
@@ -407,23 +409,35 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
               )}
 
               {/* Action Buttons */}
-              <div className="flex gap-3 pt-2">
-                <Button
-                  variant="default"
-                  className="flex-1"
-                  onClick={() => setDetailsOpen(true)}
-                >
-                  {t('properties.viewDetails') || 'View Full Details'}
-                </Button>
-                {mapUrl && (
+              <div className="flex flex-col gap-3 pt-2">
+                <div className="flex gap-3">
                   <Button
-                    variant="outline"
-                    className="font-semibold"
-                    onClick={() => {
-                      window.open(mapUrl, '_blank');
-                    }}
+                    variant="default"
+                    className="flex-1"
+                    onClick={() => setDetailsOpen(true)}
                   >
-                    {t('properties.viewOnMap') || 'View Map'}
+                    {t('properties.viewDetails') || 'See More Details'}
+                  </Button>
+                  {mapUrl && (
+                    <Button
+                      variant="outline"
+                      className="font-semibold"
+                      onClick={() => {
+                        window.open(mapUrl, '_blank');
+                      }}
+                    >
+                      {t('properties.viewOnMap') || 'View Map'}
+                    </Button>
+                  )}
+                </div>
+                {showContactOwner && (
+                  <Button
+                    variant="default"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold"
+                    onClick={() => setContactOpen(true)}
+                  >
+                    <Phone className="h-4 w-4 mr-2" />
+                    Contact Owner
                   </Button>
                 )}
               </div>
@@ -514,6 +528,106 @@ export const PropertyCard = ({ property, showAIReason, onFeedback }: PropertyCar
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Contact Owner Dialog */}
+      <Dialog open={contactOpen} onOpenChange={setContactOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">Contact Property Owner</DialogTitle>
+            <DialogDescription>
+              Get in touch with the owner of {property.title || 'this property'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-4">
+            {/* Owner Information */}
+            <div className="space-y-4">
+              {property.owner_name && (
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Owner Name</p>
+                    <p className="font-semibold text-foreground">{property.owner_name}</p>
+                  </div>
+                </div>
+              )}
+              
+              {property.owner_phone && (
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                  <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <Phone className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground">Phone Number</p>
+                    <p className="font-semibold text-foreground">{property.owner_phone}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => window.open(`tel:${property.owner_phone}`, '_self')}
+                  >
+                    Call
+                  </Button>
+                </div>
+              )}
+              
+              {property.owner_email && (
+                <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground">Email Address</p>
+                    <p className="font-semibold text-foreground text-sm">{property.owner_email}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => window.open(`mailto:${property.owner_email}`, '_blank')}
+                  >
+                    Email
+                  </Button>
+                </div>
+              )}
+              
+              {!property.owner_phone && !property.owner_email && !property.owner_name && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Phone className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>Contact information not available</p>
+                  <p className="text-sm mt-2">Please check back later or contact support</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Property Quick Info */}
+            <div className="border-t pt-4">
+              <h4 className="font-semibold mb-3 text-foreground">Property Details</h4>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Price</p>
+                  <p className="font-semibold text-foreground">{property.price ? formatCurrency(Number(property.price)) : 'N/A'} ETB/mo</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Type</p>
+                  <p className="font-semibold text-foreground">{property.house_type || 'N/A'}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Location</p>
+                  <p className="font-semibold text-foreground">{property.location || 'N/A'}</p>
+                </div>
+                {property.distance && (
+                  <div>
+                    <p className="text-muted-foreground">Distance</p>
+                    <p className="font-semibold text-foreground">{property.distance.toFixed(1)} km</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Enhanced Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>

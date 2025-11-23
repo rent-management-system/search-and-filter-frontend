@@ -115,6 +115,12 @@ export const propertyAPI = {
     const { data } = await searchApi.get(`/property/${id}`);
     return data;
   },
+  
+  getAllApproved: async () => {
+    const { data } = await searchApi.get('/properties/approved');
+    return Array.isArray(data) ? data : [];
+  },
+  
   saveSearch: async (payload: any) => {
     const { data } = await searchApi.post('/saved-searches', payload);
     return data;

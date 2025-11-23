@@ -12,7 +12,7 @@ import { recommendationAPI, propertyAPI, HAS_PROPERTY_SEARCH } from '@/lib/api';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/store';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, Search, History, BookmarkCheck, Mail, Phone, MapPin } from 'lucide-react';
+import { ArrowRight, Sparkles, Search, History, BookmarkCheck, Mail, Phone, MapPin, Home as HomeIcon } from 'lucide-react';
 import FrontPage from '@/components/FrontPage';
 import { Steps } from '@/components/Steps';
 
@@ -25,16 +25,35 @@ const Index = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   // Manual search filters (Adama-only service)
   const [filters, setFilters] = useState({
-    min_price: '',
-    max_price: '',
+    price_range: '',
     house_type: '',
     amenities: [] as string[],
     max_distance_km: 20,
     sort_by: 'distance',
   });
+  const [selectedPriceRange, setSelectedPriceRange] = useState<string>('');
+
+  // Predefined price ranges
+  const priceRanges = [
+    { label: 'Under 3,000 ETB', value: '0-3000', min: 0, max: 3000 },
+    { label: '3,000 - 5,000 ETB', value: '3000-5000', min: 3000, max: 5000 },
+    { label: '5,000 - 8,000 ETB', value: '5000-8000', min: 5000, max: 8000 },
+    { label: '8,000 - 12,000 ETB', value: '8000-12000', min: 8000, max: 12000 },
+    { label: '12,000 - 20,000 ETB', value: '12000-20000', min: 12000, max: 20000 },
+    { label: '20,000+ ETB', value: '20000-999999', min: 20000, max: 999999 },
+  ];
   // Only fetch when user explicitly submits via Search
   const [submittedFilters, setSubmittedFilters] = useState<typeof filters | null>(null);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+
+  // Fetch all approved properties
+  const { data: approvedProperties, isLoading: approvedLoading } = useQuery({
+    queryKey: ['approved-properties'],
+    queryFn: propertyAPI.getAllApproved,
+    enabled: true,
+    staleTime: 60_000,
+    retry: 1,
+  });
 
   const isValidRange = (min?: number, max?: number) =>
     min === undefined || max === undefined || min <= max;
@@ -44,10 +63,19 @@ const Index = () => {
     queryKey: ['properties', submittedFilters],
     queryFn: ({ signal }) => {
       const f = submittedFilters!;
+      // Parse price range
+      let min_price, max_price;
+      if (f.price_range) {
+        const range = priceRanges.find(r => r.value === f.price_range);
+        if (range) {
+          min_price = range.min;
+          max_price = range.max;
+        }
+      }
       return propertyAPI.search(
         {
-          min_price: f.min_price ? Number(f.min_price) : undefined,
-          max_price: f.max_price ? Number(f.max_price) : undefined,
+          min_price,
+          max_price,
           house_type: f.house_type || undefined,
           amenities: f.amenities.length ? f.amenities : undefined,
           max_distance_km: f.max_distance_km,
@@ -56,15 +84,12 @@ const Index = () => {
         { signal }
       );
     },
-    // Fetch only after user clicks Search and inputs are valid
+    // Fetch automatically when filters change
     enabled: (() => {
       if (!HAS_PROPERTY_SEARCH) return false;
       if (!submittedFilters) return false;
       if (cooldownUntil && Date.now() < cooldownUntil) return false;
-      const min = submittedFilters.min_price ? Number(submittedFilters.min_price) : undefined;
-      const max = submittedFilters.max_price ? Number(submittedFilters.max_price) : undefined;
-      const hasBoth = min !== undefined && max !== undefined;
-      return hasBoth && isValidRange(min, max);
+      return !!submittedFilters.price_range;
     })(),
     // v5 replacement for keepPreviousData
     placeholderData: (prev) => prev,
@@ -232,10 +257,14 @@ const Index = () => {
           </motion.div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className={`grid w-full max-w-md mx-auto ${HAS_PROPERTY_SEARCH ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <TabsList className={`grid w-full max-w-2xl mx-auto ${HAS_PROPERTY_SEARCH ? 'grid-cols-3' : 'grid-cols-2'}`}>
               <TabsTrigger value="ai" className="gap-2">
                 <Sparkles className="h-4 w-4" />
                 {t('properties.aiRecommendations')}
+              </TabsTrigger>
+              <TabsTrigger value="all" className="gap-2">
+                <HomeIcon className="h-4 w-4" />
+                All Properties
               </TabsTrigger>
               {HAS_PROPERTY_SEARCH && (
                 <TabsTrigger value="browse" className="gap-2">
@@ -302,6 +331,41 @@ const Index = () => {
               )}
             </TabsContent>
 
+            {/* All Approved Properties Tab */}
+            <TabsContent value="all" className="space-y-8">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold mb-2">All Approved Properties</h3>
+                <p className="text-muted-foreground">Browse our complete collection of verified properties</p>
+              </div>
+
+              {approvedLoading ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="space-y-3">
+                      <Skeleton className="h-48 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  ))}
+                </div>
+              ) : approvedProperties && approvedProperties.length > 0 ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {approvedProperties.map((property: any, idx: number) => (
+                    <PropertyCard 
+                      key={property.id || idx} 
+                      property={property}
+                      showContactOwner={true}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <HomeIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg text-muted-foreground">No approved properties available at the moment</p>
+                </div>
+              )}
+            </TabsContent>
+
             {HAS_PROPERTY_SEARCH && (
             <TabsContent value="browse" className="space-y-8">
               {/* Manual Search UI (distinct from AI) */}
@@ -312,51 +376,64 @@ const Index = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid md:grid-cols-4 gap-4">
+                  {/* Price Range Selection */}
+                  <div className="space-y-3">
+                    <label className="block text-sm font-medium">Select Your Budget Range</label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {priceRanges.map((range) => (
+                        <button
+                          key={range.value}
+                          type="button"
+                          onClick={() => {
+                            setSelectedPriceRange(range.value);
+                            const newFilters = { ...filters, price_range: range.value };
+                            setFilters(newFilters);
+                            setSubmittedFilters(newFilters);
+                          }}
+                          className={`p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                            selectedPriceRange === range.value
+                              ? 'border-primary bg-primary/10 shadow-lg scale-105'
+                              : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                          }`}
+                        >
+                          <div className="font-semibold text-foreground">{range.label}</div>
+                          <div className="text-xs text-muted-foreground mt-1">Monthly rent</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4 mt-6">
                     {/* House Type */}
                     <div>
-                      <label className="block text-sm font-medium mb-1">House Type</label>
+                      <label className="block text-sm font-medium mb-2">House Type</label>
                       <select
-                        className="w-full h-10 rounded-md border bg-background"
+                        className="w-full h-11 rounded-lg border-2 bg-background px-4 font-medium"
                         value={filters.house_type}
-                        onChange={(e) => setFilters({ ...filters, house_type: e.target.value })}
+                        onChange={(e) => {
+                          const newFilters = { ...filters, house_type: e.target.value };
+                          setFilters(newFilters);
+                          if (selectedPriceRange) setSubmittedFilters(newFilters);
+                        }}
                       >
-                        <option value="">Any</option>
+                        <option value="">Any Type</option>
                         <option value="apartment">Apartment</option>
                         <option value="house">House</option>
                         <option value="villa">Villa</option>
                         <option value="studio">Studio</option>
                       </select>
                     </div>
-                    {/* Min Price */}
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Min Price (ETB)</label>
-                      <input
-                        type="number"
-                        className="w-full h-10 rounded-md border bg-background px-3"
-                        value={filters.min_price}
-                        onChange={(e) => setFilters({ ...filters, min_price: e.target.value })}
-                        placeholder="e.g., 5000"
-                      />
-                    </div>
-                    {/* Max Price */}
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Max Price (ETB)</label>
-                      <input
-                        type="number"
-                        className="w-full h-10 rounded-md border bg-background px-3"
-                        value={filters.max_price}
-                        onChange={(e) => setFilters({ ...filters, max_price: e.target.value })}
-                        placeholder="e.g., 20000"
-                      />
-                    </div>
                     {/* Sort By */}
                     <div>
-                      <label className="block text-sm font-medium mb-1">Sort By</label>
+                      <label className="block text-sm font-medium mb-2">Sort By</label>
                       <select
-                        className="w-full h-10 rounded-md border bg-background"
+                        className="w-full h-11 rounded-lg border-2 bg-background px-4 font-medium"
                         value={filters.sort_by}
-                        onChange={(e) => setFilters({ ...filters, sort_by: e.target.value })}
+                        onChange={(e) => {
+                          const newFilters = { ...filters, sort_by: e.target.value };
+                          setFilters(newFilters);
+                          if (selectedPriceRange) setSubmittedFilters(newFilters);
+                        }}
                       >
                         <option value="distance">Distance</option>
                         <option value="price">Price</option>
@@ -365,90 +442,97 @@ const Index = () => {
                   </div>
 
                   {/* Amenities + Distance */}
-                  <div className="grid md:grid-cols-2 gap-4 mt-4">
+                  <div className="grid md:grid-cols-2 gap-6 mt-6">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Amenities</label>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <label className="block text-sm font-medium mb-3">Amenities</label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {['wifi','parking','security','water','balcony','garden'].map((a) => (
-                          <label key={a} className="flex items-center gap-2 text-sm">
+                          <label key={a} className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
                             <input
                               type="checkbox"
+                              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
                               checked={filters.amenities.includes(a)}
                               onChange={(e) => {
                                 const next = e.target.checked
                                   ? [...filters.amenities, a]
                                   : filters.amenities.filter((x) => x !== a);
-                                setFilters({ ...filters, amenities: next });
+                                const newFilters = { ...filters, amenities: next };
+                                setFilters(newFilters);
+                                if (selectedPriceRange) setSubmittedFilters(newFilters);
                               }}
                             />
-                            <span className="capitalize">{a}</span>
+                            <span className="capitalize font-medium">{a}</span>
                           </label>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">Max Distance (km): {filters.max_distance_km}</label>
+                      <label className="block text-sm font-medium mb-3">Max Distance: <span className="text-primary font-bold">{filters.max_distance_km} km</span></label>
                       <input
                         type="range"
                         min={1}
                         max={30}
                         step={1}
                         value={filters.max_distance_km}
-                        onChange={(e) => setFilters({ ...filters, max_distance_km: Number(e.target.value) })}
-                        className="w-full"
+                        onChange={(e) => {
+                          const newFilters = { ...filters, max_distance_km: Number(e.target.value) };
+                          setFilters(newFilters);
+                          if (selectedPriceRange) setSubmittedFilters(newFilters);
+                        }}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
                       />
+                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                        <span>1 km</span>
+                        <span>30 km</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex flex-col sm:flex-row gap-3 mt-4">
-                    <Button
-                      disabled={propertiesLoading}
-                      onClick={() => {
-                        const min = filters.min_price ? Number(filters.min_price) : undefined;
-                        const max = filters.max_price ? Number(filters.max_price) : undefined;
-                        if (cooldownUntil && Date.now() < cooldownUntil) {
-                          const wait = Math.ceil((cooldownUntil - Date.now()) / 1000);
-                          toast.error(`Please wait ${wait}s and try again (rate limited).`);
-                          return;
-                        }
-                        if (min === undefined || max === undefined) {
-                          toast.error('Please enter both Min and Max price');
-                          return;
-                        }
-                        if (min > max) {
-                          toast.error('Min price cannot be greater than Max price');
-                          return;
-                        }
-                        // Submit filters to trigger a single query run
-                        setSubmittedFilters({ ...filters });
-                      }}
-                      className="sm:w-auto"
-                    >
-                      Search
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={async () => {
-                        try {
-                          await propertyAPI.saveSearch({
-                            location: 'Adama',
-                            min_price: filters.min_price ? Number(filters.min_price) : undefined,
-                            max_price: filters.max_price ? Number(filters.max_price) : undefined,
-                            house_type: filters.house_type || undefined,
-                            amenities: filters.amenities,
-                            max_distance_km: filters.max_distance_km,
-                          });
-                          alert('Search saved');
-                        } catch (e) {
-                          console.error('Save search failed', e);
-                        }
-                      }}
-                      className="sm:w-auto"
-                    >
-                      Save Search
-                    </Button>
-                  </div>
+                  {/* Info Message */}
+                  {!selectedPriceRange && (
+                    <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
+                        👆 Select a price range above to start browsing properties
+                      </p>
+                    </div>
+                  )}
+                  
+                  {selectedPriceRange && (
+                    <div className="mt-6 flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-green-600 flex items-center justify-center">
+                          <Search className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-green-800 dark:text-green-200">Searching properties...</p>
+                          <p className="text-sm text-green-600 dark:text-green-300">Results update automatically as you adjust filters</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          try {
+                            const range = priceRanges.find(r => r.value === selectedPriceRange);
+                            await propertyAPI.saveSearch({
+                              location: 'Adama',
+                              min_price: range?.min,
+                              max_price: range?.max,
+                              house_type: filters.house_type || undefined,
+                              amenities: filters.amenities,
+                              max_distance_km: filters.max_distance_km,
+                            });
+                            toast.success('Search preferences saved!');
+                          } catch (e) {
+                            console.error('Save search failed', e);
+                            toast.error('Failed to save search');
+                          }
+                        }}
+                      >
+                        Save Search
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
               {propertiesLoading ? (
