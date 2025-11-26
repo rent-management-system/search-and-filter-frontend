@@ -171,20 +171,6 @@ const Index = () => {
         <div className="container mx-auto px-4 py-8">
           <FrontPage />
           <Steps />
-          <div className="grid grid-cols-3 gap-6 pt-8">
-            <div>
-              <p className="text-3xl font-bold text-primary">1000+</p>
-              <p className="text-sm text-muted-foreground">{t('index.properties_available')}</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-primary">500+</p>
-              <p className="text-sm text-muted-foreground">{t('index.happy_tenants')}</p>
-            </div>
-            <div>
-              <p className="text-3xl font-bold text-primary">95%</p>
-              <p className="text-sm text-muted-foreground">{t('index.satisfaction')}</p>
-            </div>
-          </div>
         </div>
       </section>
 
