@@ -13,7 +13,7 @@ export const LanguageSelector = () => {
   const { i18n } = useTranslation();
   const { language, setLanguage } = useLanguageStore();
 
-  const handleLanguageChange = (lang: 'en' | 'am') => {
+  const handleLanguageChange = (lang: 'en' | 'am' | 'om') => {
     setLanguage(lang);
     i18n.changeLanguage(lang);
   };
@@ -32,6 +32,9 @@ export const LanguageSelector = () => {
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleLanguageChange('am')}>
           አማርኛ (Amharic)
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleLanguageChange('om')}>
+          Afaan Oromoo
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

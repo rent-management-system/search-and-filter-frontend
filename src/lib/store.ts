@@ -17,8 +17,8 @@ interface AuthState {
 }
 
 interface LanguageState {
-  language: 'en' | 'am';
-  setLanguage: (lang: 'en' | 'am') => void;
+  language: 'en' | 'am' | 'om';
+  setLanguage: (lang: 'en' | 'am' | 'om') => void;
 }
 
 export const useAuthStore = create<AuthState>()(

@@ -68,13 +68,13 @@ export const Header: React.FC = () => {
 
       <nav className="items-center space-x-12 list-none hidden md:flex">
         <button
-          onClick={() => scrollToSection('home')}
+          onClick={() => navigate('/')}
           className="text-md mr-2 text-[18px] transition-transform duration-200 hover:scale-105 hover:text-primary cursor-pointer"
         >
           {t('nav.home')}
         </button>
         <button
-          onClick={() => scrollToSection('about')}
+          onClick={() => window.location.href = 'https://rent-management-system-tau.vercel.app/#about'}
           className="text-md mr-2 text-[18px] transition-transform duration-200 hover:scale-105 hover:text-primary cursor-pointer"
         >
           {t('nav.about')}
@@ -145,8 +145,8 @@ export const Header: React.FC = () => {
                   <LayoutDashboard className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-medium text-gray-900">Dashboard</span>
-                  <span className="text-xs text-gray-500">Manage your account</span>
+                  <span className="font-medium text-gray-900">{t('header.dashboard')}</span>
+                  <span className="text-xs text-gray-500">{t('header.manage_account')}</span>
                 </div>
               </DropdownMenuItem>
 
@@ -161,9 +161,9 @@ export const Header: React.FC = () => {
                 </div>
                 <div className="flex flex-col">
                   <span className="font-medium text-gray-900 group-hover:text-destructive transition-colors">
-                    Logout
+                    {t('header.logout')}
                   </span>
-                  <span className="text-xs text-gray-500">Sign out of your account</span>
+                  <span className="text-xs text-gray-500">{t('header.sign_out')}</span>
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -250,25 +250,23 @@ export const Header: React.FC = () => {
         aria-hidden={!isNavOpen}
       >
         <ul className="ul" style={{ margin: 0, position: 'absolute', top: '30%', left: '7vw', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <li className="li li1" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
-            <a 
-              href="#" 
-              onClick={(e) => { e.preventDefault(); scrollToSection('home'); }}
-              style={{ textDecoration: 'none', color: '#d8ccccfc', whiteSpace: 'normal', overflowWrap: 'break-word' }}
-            >
-              {t('nav.home')}
-            </a>
-          </li>
-          <li className="li li2" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
-            <a 
-              href="#" 
-              onClick={(e) => { e.preventDefault(); scrollToSection('about'); }}
-              style={{ textDecoration: 'none', color: '#d8ccccfc', whiteSpace: 'normal', overflowWrap: 'break-word' }}
-            >
-              {t('nav.about')}
-            </a>
-          </li>
-          <li className="li li3" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
+                    <li className="li li1" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
+                      <a
+                        href="/"
+                        onClick={() => { navigate('/'); }}
+                        style={{ textDecoration: 'none', color: '#d8ccccfc', whiteSpace: 'normal', overflowWrap: 'break-word' }}
+                      >
+                        {t('nav.home')}
+                      </a>
+                    </li>                    <li className="li li2" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
+                      <a
+                        href="https://rent-management-system-tau.vercel.app/#about"
+                        onClick={() => { window.location.href = 'https://rent-management-system-tau.vercel.app/#about'; }}
+                        style={{ textDecoration: 'none', color: '#d8ccccfc', whiteSpace: 'normal', overflowWrap: 'break-word' }}
+                      >
+                        {t('nav.about')}
+                      </a>
+                    </li>          <li className="li li3" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
             <a 
               href="#" 
               onClick={(e) => { e.preventDefault(); scrollToSection('properties'); }}

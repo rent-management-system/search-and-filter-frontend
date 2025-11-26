@@ -196,7 +196,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
             {imageUrl ? (
               <img
                 src={imageUrl}
-                alt={property.title || 'Property'}
+                alt={property.title || t('property_card.property')}
                 className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                 onError={(e) => {
                   const target = e.currentTarget as HTMLImageElement;
@@ -217,14 +217,14 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
             <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-2">
               {/* House type badge */}
               <Badge className="bg-white/95 backdrop-blur-sm text-gray-800 border-0 font-semibold shadow-lg">
-                {property.house_type || 'Property'}
+                {property.house_type || t('property_card.property')}
               </Badge>
 
               {/* Approved flag */}
               {(property.approved || property.status === 'APPROVED') && (
                 <Badge className="bg-green-600 text-white border-0 shadow-lg flex items-center gap-1.5 font-semibold">
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  Verified
+                  {t('property_card.verified')}
                 </Badge>
               )}
             </div>
@@ -255,14 +255,14 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     <p className="font-bold text-2xl text-foreground">
                       {property.price ? formatCurrency(Number(property.price)) : '15,000'} ETB
                     </p>
-                    <p className="text-xs text-muted-foreground font-medium">per month</p>
+                    <p className="text-xs text-muted-foreground font-medium">{t('property_card.per_month')}</p>
                   </div>
                   {property.affordability_score && (
                     <div className="text-right">
                       <div className={`text-lg font-bold ${getScoreColor(property.affordability_score)}`}>
                         {property.affordability_score}%
                       </div>
-                      <p className="text-xs text-muted-foreground font-medium">Affordable</p>
+                      <p className="text-xs text-muted-foreground font-medium">{t('property_card.affordable')}</p>
                     </div>
                   )}
                 </div>
@@ -276,11 +276,11 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
               {/* Title and Location */}
               <div>
                 <h3 className="font-bold text-xl text-foreground leading-tight line-clamp-2">
-                  {property.title || 'Modern Luxury Apartment'}
+                  {property.title || t('property_card.modern_luxury_apartment')}
                 </h3>
                 <div className="flex items-center text-muted-foreground mt-2">
                   <MapPin className="h-4 w-4 mr-2 flex-shrink-0 text-primary" />
-                  <span className="text-sm font-medium">{property.location || 'Addis Ababa, Ethiopia'}</span>
+                  <span className="text-sm font-medium">{property.location || t('property_card.addis_ababa_ethiopia')}</span>
                 </div>
               </div>
 
@@ -290,7 +290,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   <div className="text-center p-2 rounded-lg bg-muted/40 border border-border">
                     <Bed className="h-5 w-5 text-primary mx-auto mb-1" />
                     <div className="text-sm font-semibold text-foreground">{property.bedrooms}</div>
-                    <div className="text-xs text-muted-foreground">Beds</div>
+                    <div className="text-xs text-muted-foreground">{t('property_card.beds')}</div>
                   </div>
                 )}
                 
@@ -298,7 +298,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   <div className="text-center p-2 rounded-lg bg-muted/40 border border-border">
                     <Bath className="h-5 w-5 text-primary mx-auto mb-1" />
                     <div className="text-sm font-semibold text-foreground">{property.bathrooms}</div>
-                    <div className="text-xs text-muted-foreground">Baths</div>
+                    <div className="text-xs text-muted-foreground">{t('property_card.baths')}</div>
                   </div>
                 )}
 
@@ -306,7 +306,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   <div className="text-center p-2 rounded-lg bg-muted/40 border border-border">
                     <Ruler className="h-5 w-5 text-primary mx-auto mb-1" />
                     <div className="text-sm font-semibold text-foreground">{property.area}m²</div>
-                    <div className="text-xs text-muted-foreground">Area</div>
+                    <div className="text-xs text-muted-foreground">{t('property_card.area')}</div>
                   </div>
                 )}
               </div>
@@ -317,7 +317,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Navigation className="h-4 w-4 text-primary" />
-                      <span>Distance to center</span>
+                      <span>{t('property_card.distance_to_center')}</span>
                     </div>
                     <span className="font-semibold text-foreground">{property.distance.toFixed(1)} km</span>
                   </div>
@@ -327,7 +327,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   <div className="flex items-center justify-between text-sm">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Car className="h-4 w-4 text-primary" />
-                      <span>Monthly transport</span>
+                      <span>{t('property_card.monthly_transport')}</span>
                     </div>
                     <span className="font-semibold text-foreground">{formatCurrency(property.transport_cost)} ETB</span>
                   </div>
@@ -337,7 +337,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
               {/* Amenities */}
               {property.amenities && property.amenities.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-semibold text-foreground">Key Features</p>
+                  <p className="text-sm font-semibold text-foreground">{t('property_card.key_features')}</p>
                   <div className="flex flex-wrap gap-2">
                     {property.amenities.slice(0, 3).map((amenity: string, idx: number) => (
                       <Badge key={idx} variant="secondary" className="text-xs bg-muted text-foreground/80 border flex items-center gap-1">
@@ -347,7 +347,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     ))}
                     {property.amenities.length > 3 && (
                       <Badge variant="secondary" className="text-xs bg-muted text-muted-foreground">
-                        +{property.amenities.length - 3} more
+                        +{property.amenities.length - 3} {t('property_card.more')}
                       </Badge>
                     )}
                   </div>
@@ -365,15 +365,15 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     <div className="w-3 h-3 bg-primary rounded-full animate-pulse" />
                     <div className="flex-1">
                       <h4 className="font-bold text-lg text-foreground">
-                        AI Recommendation
+                        {t('property_card.ai_recommendation')}
                       </h4>
                       <p className="text-sm text-muted-foreground">
-                        Why this property matches your preferences
+                        {t('property_card.why_this_property_matches')}
                       </p>
                     </div>
                     {aiPoints?.fitScore && (
                       <Badge className="bg-primary text-primary-foreground border-0 text-sm px-3 py-1">
-                        {aiPoints.fitScore}% Match
+                        {t('property_card.match_percentage', { percentage: aiPoints.fitScore })}
                       </Badge>
                     )}
                   </div>
@@ -393,14 +393,14 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                       {/* Score Breakdown */}
                       <div className="space-y-3">
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Location Match</span>
+                          <span className="text-muted-foreground">{t('property_card.location_match')}</span>
                           <div className="flex items-center gap-2">
                             <Progress value={aiPoints.fitScore || 85} className="w-20 h-2" />
                             <span className="font-semibold text-foreground">{aiPoints.fitScore || 85}%</span>
                           </div>
                         </div>
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground">Value Score</span>
+                          <span className="text-muted-foreground">{t('property_card.value_score')}</span>
                           <div className="flex items-center gap-2">
                             <Progress value={aiPoints.valueScore || 78} className="w-20 h-2" />
                             <span className="font-semibold text-foreground">{aiPoints.valueScore || 78}%</span>
@@ -412,19 +412,19 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                       <div className="grid grid-cols-3 gap-3 pt-2">
                         {aiPoints.distanceKm !== undefined && (
                           <div className="text-center">
-                            <div className="text-xs text-muted-foreground">Distance</div>
+                            <div className="text-xs text-muted-foreground">{t('property_card.distance')}</div>
                             <div className="font-bold text-foreground">{aiPoints.distanceKm}km</div>
                           </div>
                         )}
                         {aiPoints.transportETB !== undefined && (
                           <div className="text-center">
-                            <div className="text-xs text-muted-foreground">Transport</div>
+                            <div className="text-xs text-muted-foreground">{t('property_card.transport')}</div>
                             <div className="font-bold text-foreground">{formatCurrency(aiPoints.transportETB)}</div>
                           </div>
                         )}
                         {aiPoints.remainingETB !== undefined && (
                           <div className="text-center">
-                            <div className="text-xs text-muted-foreground">Remaining</div>
+                            <div className="text-xs text-muted-foreground">{t('property_card.remaining')}</div>
                             <div className={`font-bold ${aiPoints.remainingETB >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {aiPoints.remainingETB >= 0 ? '+' : ''}{formatCurrency(aiPoints.remainingETB)}
                             </div>
@@ -448,7 +448,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     className="flex-1"
                     onClick={() => setDetailsOpen(true)}
                   >
-                    {t('properties.viewDetails') || 'See More Details'}
+                    {t('properties.viewDetails')}
                   </Button>
                   {mapUrl && (
                     <Button
@@ -458,7 +458,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                         window.open(mapUrl, '_blank');
                       }}
                     >
-                      {t('properties.viewOnMap') || 'View Map'}
+                      {t('properties.viewOnMap')}
                     </Button>
                   )}
                 </div>
@@ -469,7 +469,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     onClick={() => setContactOpen(true)}
                   >
                     <Phone className="h-4 w-4 mr-2" />
-                    Contact Owner
+                    {t('property_card.contact_owner')}
                   </Button>
                 )}
               </div>
@@ -506,7 +506,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                         disabled={!!feedbackGiven}
                       >
                         <ThumbsUp className="h-4 w-4" />
-                        Helpful
+                        {t('property_card.helpful')}
                       </Button>
                       <Button
                         variant={feedbackGiven === 'dislike' ? 'default' : 'outline'}
@@ -520,7 +520,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                         disabled={!!feedbackGiven}
                       >
                         <ThumbsDown className="h-4 w-4" />
-                        Not Helpful
+                        {t('property_card.not_helpful')}
                       </Button>
                     </div>
                   </div>
@@ -535,7 +535,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                         className="space-y-2"
                       >
                         <textarea
-                          placeholder={t('add_feedback_note') || 'Help us improve: share your thoughts about this recommendation...'}
+                          placeholder={t('property_card.add_feedback_note')}
                           className="w-full text-sm p-3 rounded-xl border border-input bg-background text-foreground resize-none min-h-[80px] focus:ring-2 focus:ring-primary focus:border-primary transition-all"
                           value={note}
                           onChange={(e) => setNote(e.target.value)}
@@ -548,7 +548,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                             disabled={!note.trim()}
                             className="font-semibold"
                           >
-                            {t('save') || 'Save Note'}
+                            {t('property_card.save_note')}
                           </Button>
                         </div>
                       </motion.div>
@@ -565,9 +565,9 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
       <Dialog open={contactOpen} onOpenChange={setContactOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold">Contact Property Owner</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">{t('property_card.contact_owner_title')}</DialogTitle>
             <DialogDescription>
-              Get in touch with the owner of {property.title || 'this property'}
+              {t('property_card.contact_owner_description', { propertyTitle: property.title || t('property_card.this_property') })}
             </DialogDescription>
           </DialogHeader>
           
@@ -580,7 +580,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     <User className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Owner Name</p>
+                    <p className="text-sm text-muted-foreground">{t('property_card.owner_name')}</p>
                     <p className="font-semibold text-foreground">{ownerContact.name}</p>
                   </div>
                 </div>
@@ -592,7 +592,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     <Phone className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">Phone Number</p>
+                    <p className="text-sm text-muted-foreground">{t('property_card.phone_number')}</p>
                     <p className="font-semibold text-foreground">{ownerContact.phone}</p>
                   </div>
                   <Button
@@ -600,7 +600,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     variant="outline"
                     onClick={() => window.open(`tel:${ownerContact.phone}`, '_self')}
                   >
-                    Call
+                    {t('property_card.call')}
                   </Button>
                 </div>
               )}
@@ -611,7 +611,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">Email Address</p>
+                    <p className="text-sm text-muted-foreground">{t('property_card.email_address')}</p>
                     <p className="font-semibold text-foreground text-sm">{ownerContact.email}</p>
                   </div>
                   <Button
@@ -619,7 +619,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     variant="outline"
                     onClick={() => window.open(`mailto:${ownerContact.email}`, '_blank')}
                   >
-                    Email
+                    {t('property_card.email')}
                   </Button>
                 </div>
               )}
@@ -627,31 +627,31 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
               {!ownerContact.phone && !ownerContact.email && !ownerContact.name && (
                 <div className="text-center py-8 text-muted-foreground">
                   <Phone className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                  <p>Contact information not available</p>
-                  <p className="text-sm mt-2">Please check back later or contact support</p>
+                  <p>{t('property_card.contact_info_not_available')}</p>
+                  <p className="text-sm mt-2">{t('property_card.check_back_later')}</p>
                 </div>
               )}
             </div>
             
             {/* Property Quick Info */}
             <div className="border-t pt-4">
-              <h4 className="font-semibold mb-3 text-foreground">Property Details</h4>
+              <h4 className="font-semibold mb-3 text-foreground">{t('property_card.property_details')}</h4>
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <p className="text-muted-foreground">Price</p>
-                  <p className="font-semibold text-foreground">{property.price ? formatCurrency(Number(property.price)) : 'N/A'} ETB/mo</p>
+                  <p className="text-muted-foreground">{t('property_card.price')}</p>
+                  <p className="font-semibold text-foreground">{property.price ? formatCurrency(Number(property.price)) : t('property_card.n_a')} ETB/mo</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Type</p>
-                  <p className="font-semibold text-foreground">{property.house_type || 'N/A'}</p>
+                  <p className="text-muted-foreground">{t('property_card.type')}</p>
+                  <p className="font-semibold text-foreground">{property.house_type || t('property_card.n_a')}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Location</p>
-                  <p className="font-semibold text-foreground">{property.location || 'N/A'}</p>
+                  <p className="text-muted-foreground">{t('property_card.location')}</p>
+                  <p className="font-semibold text-foreground">{property.location || t('property_card.n_a')}</p>
                 </div>
                 {property.distance && (
                   <div>
-                    <p className="text-muted-foreground">Distance</p>
+                    <p className="text-muted-foreground">{t('property_card.distance')}</p>
                     <p className="font-semibold text-foreground">{property.distance.toFixed(1)} km</p>
                   </div>
                 )}
@@ -669,7 +669,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
               <div className="relative h-96 w-full">
                 <img
                   src={imageUrl}
-                  alt={property.title || 'Property'}
+                  alt={property.title || t('property_card.property')}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     const target = e.currentTarget as HTMLImageElement;
@@ -683,7 +683,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
             
             <DialogHeader className="absolute top-6 left-6 right-6">
               <DialogTitle className="text-3xl font-bold text-white drop-shadow-lg">
-                {property.title || 'Property Details'}
+                {property.title || t('property_card.property_details')}
               </DialogTitle>
               <DialogDescription className="text-white/90 drop-shadow-lg text-lg">
                 {property.location || 'Addis Ababa'}
@@ -699,20 +699,20 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                 <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {property.price ? formatCurrency(Number(property.price)) : '15,000'}
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Monthly Rent</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{t('property_card.monthly_rent')}</div>
               </div>
               
               <div className="text-center p-4 rounded-2xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
                 <Home className="h-8 w-8 text-green-600 dark:text-green-400 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{property.house_type || 'House'}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Property Type</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">{property.house_type || t('property_card.house')}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{t('property_card.property_type')}</div>
               </div>
 
               {property.bedrooms && (
                 <div className="text-center p-4 rounded-2xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
                   <Bed className="h-8 w-8 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-gray-900 dark:text-white">{property.bedrooms}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Bedrooms</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{t('property_card.bedrooms')}</div>
                 </div>
               )}
 
@@ -720,7 +720,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                 <div className="text-center p-4 rounded-2xl bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800">
                   <Navigation className="h-8 w-8 text-orange-600 dark:text-orange-400 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-gray-900 dark:text-white">{property.distance.toFixed(1)} km</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Distance</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">{t('property_card.distance')}</div>
                 </div>
               )}
             </div>
@@ -728,7 +728,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
             {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Amenities & Features</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('property_card.amenities_features')}</h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {property.amenities.map((amenity: string, idx: number) => (
                     <div key={idx} className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-md transition-shadow">
@@ -744,12 +744,12 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
 
             {/* Map */}
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Location</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('property_card.location')}</h3>
               {mapUrl ? (
                 <iframe
                   src={mapUrl}
                   className="w-full h-96 rounded-2xl border-0 shadow-lg"
-                  title="Property Location"
+                  title={t('property_card.property_location')}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                   allowFullScreen
@@ -764,12 +764,12 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   </div>
                   <div className="text-center space-y-3 max-w-md">
                     <p className="font-semibold text-foreground text-lg">
-                      {property.location || 'Location information available'}
+                      {property.location || t('property_card.location_info_available')}
                     </p>
                     {(property.lat && property.lon) ? (
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">
-                          Coordinates: {property.lat.toFixed(6)}, {property.lon.toFixed(6)}
+                          {t('property_card.coordinates')}: {property.lat.toFixed(6)}, {property.lon.toFixed(6)}
                         </p>
                         <Button
                           variant="default"
@@ -778,16 +778,16 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                           className="gap-2"
                         >
                           <MapPin className="h-4 w-4" />
-                          Open in Google Maps
+                          {t('property_card.open_in_google_maps')}
                         </Button>
                       </div>
                     ) : (
                       <div className="space-y-2">
                         <p className="text-sm text-muted-foreground font-medium">
-                          🔒 Interactive maps not supported in current API plan
+                          {t('property_card.maps_not_supported')}
                         </p>
                         <p className="text-xs text-muted-foreground/80">
-                          Upgrade to Pro to unlock interactive maps and advanced location features
+                          {t('property_card.upgrade_to_pro')}
                         </p>
                       </div>
                     )}
