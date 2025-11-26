@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { recommendationAPI, SEARCH_BASE } from '@/lib/api';
 import { toast } from 'sonner';
+import { MapView } from '@/components/MapView';
 
 interface PropertyCardProps {
   property: any;
@@ -450,15 +451,20 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   >
                     {t('properties.viewDetails') || 'See More Details'}
                   </Button>
-                  {mapUrl && (
+                  {(mapUrl || (property.lat && property.lon)) && (
                     <Button
                       variant="outline"
                       className="font-semibold"
                       onClick={() => {
-                        window.open(mapUrl, '_blank');
+                        if (mapUrl) {
+                          window.open(mapUrl, '_blank');
+                        } else if (property.lat && property.lon) {
+                          setDetailsOpen(true);
+                        }
                       }}
                     >
-                      {t('properties.viewOnMap') || 'View Map'}
+                      <MapPin className="h-4 w-4 mr-2" />
+                      {t('properties.viewOnMap') || 'View on Map'}
                     </Button>
                   )}
                 </div>
@@ -745,7 +751,17 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
             {/* Map */}
             <div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Location</h3>
-              {mapUrl ? (
+              {(property.lat && property.lon) ? (
+                <MapView
+                  latitude={property.lat}
+                  longitude={property.lon}
+                  title={property.title || 'Property Location'}
+                  zoom={15}
+                  markerColor="#3B82F6"
+                  showFullscreenButton={true}
+                  className="h-96"
+                />
+              ) : mapUrl ? (
                 <iframe
                   src={mapUrl}
                   className="w-full h-96 rounded-2xl border-0 shadow-lg"
@@ -766,31 +782,14 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     <p className="font-semibold text-foreground text-lg">
                       {property.location || 'Location information available'}
                     </p>
-                    {(property.lat && property.lon) ? (
-                      <div className="space-y-3">
-                        <p className="text-sm text-muted-foreground">
-                          Coordinates: {property.lat.toFixed(6)}, {property.lon.toFixed(6)}
-                        </p>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => window.open(`https://www.google.com/maps?q=${property.lat},${property.lon}`, '_blank')}
-                          className="gap-2"
-                        >
-                          <MapPin className="h-4 w-4" />
-                          Open in Google Maps
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground font-medium">
-                          🔒 Interactive maps not supported in current API plan
-                        </p>
-                        <p className="text-xs text-muted-foreground/80">
-                          Upgrade to Pro to unlock interactive maps and advanced location features
-                        </p>
-                      </div>
-                    )}
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground font-medium">
+                        📍 Map preview not available
+                      </p>
+                      <p className="text-xs text-muted-foreground/80">
+                        Location coordinates are required to display the map
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
