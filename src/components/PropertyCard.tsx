@@ -463,6 +463,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                         }
                       }}
                     >
+<<<<<<< HEAD
 
                       <MapPin className="h-4 w-4 mr-2" />
                       {t('properties.viewOnMap') || 'View on Map'}
@@ -474,6 +475,9 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
 =======
                       {t('properties.viewOnMap')}
 
+=======
+                      {t('properties.viewOnMap')}
+>>>>>>> 5c135a1 (edit fully)
                     </Button>
                   )}
                 </div>
@@ -762,6 +766,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Location</h3>
               {(property.lat && property.lon) ? (
                 <MapView
@@ -775,6 +780,8 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                 />
               ) : mapUrl ? (
 
+=======
+>>>>>>> 5c135a1 (edit fully)
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('property_card.location')}</h3>
               {mapUrl ? (
 
