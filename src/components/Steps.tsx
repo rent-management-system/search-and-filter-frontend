@@ -1,21 +1,23 @@
 import { CheckCircle2, Sparkles, Search, BookmarkCheck } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export const Steps = () => {
+  const { t } = useTranslation();
   const steps = [
     {
       icon: Sparkles,
-      title: 'Tell us your preferences',
-      desc: 'Job/school location, salary, family size, house type and amenities.'
+      title: t('steps.step1_title'),
+      desc: t('steps.step1_desc')
     },
     {
       icon: Search,
-      title: 'Generate AI recommendations',
-      desc: 'We match properties by proximity, transport, price and amenities.'
+      title: t('steps.step2_title'),
+      desc: t('steps.step2_desc')
     },
     {
       icon: BookmarkCheck,
-      title: 'Review and save favorites',
-      desc: 'Open details, view on map, and leave feedback for better results.'
+      title: t('steps.step3_title'),
+      desc: t('steps.step3_desc')
     }
   ];
 
@@ -29,7 +31,7 @@ export const Steps = () => {
                 <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
                   <s.icon className="h-5 w-5 text-primary" />
                 </div>
-                <div className="text-xs font-semibold text-muted-foreground">Step {i + 1}</div>
+                <div className="text-xs font-semibold text-muted-foreground">{t('steps.step_n', { n: i + 1 })}</div>
               </div>
               <h3 className="font-semibold mb-1">{s.title}</h3>
               <p className="text-sm text-muted-foreground">{s.desc}</p>
@@ -38,7 +40,7 @@ export const Steps = () => {
         </div>
         <div className="flex items-center gap-2 mt-4 text-sm text-muted-foreground">
           <CheckCircle2 className="h-4 w-4 text-primary" />
-          Your token is used automatically for secure API calls.
+          {t('steps.api_token_message')}
         </div>
       </div>
     </section>
