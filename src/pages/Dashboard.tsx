@@ -125,6 +125,7 @@ const Dashboard = () => {
         <motion.div variants={itemVariants} className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
+
               <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 to-blue-700 dark:from-white dark:to-blue-300 bg-clip-text text-transparent mb-3">
                 {t('dashboard') || 'Dashboard'}
               </h1>
@@ -476,6 +477,7 @@ const Dashboard = () => {
                             <Skeleton className="h-4 w-3/4" />
                             <Skeleton className="h-4 w-1/2" />
                             <Skeleton className="h-10 w-full mt-4" />
+
                               <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 to-blue-700 dark:from-white dark:to-blue-300 bg-clip-text text-transparent mb-3">
                               {t('dashboard.title')}
                             </h1>

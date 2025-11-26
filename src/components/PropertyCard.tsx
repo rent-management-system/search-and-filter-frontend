@@ -463,16 +463,17 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                         }
                       }}
                     >
-<<<<<<< HEAD
-<<<<<<< HEAD
+
                       <MapPin className="h-4 w-4 mr-2" />
                       {t('properties.viewOnMap') || 'View on Map'}
+
+                      {t('properties.viewOnMap')}
+
+                      {t('properties.viewOnMap')}
+
 =======
                       {t('properties.viewOnMap')}
->>>>>>> 5c135a1 (edit fully)
-=======
-                      {t('properties.viewOnMap')}
->>>>>>> 5c135a1 (edit fully)
+
                     </Button>
                   )}
                 </div>
@@ -760,6 +761,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
             <div>
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Location</h3>
               {(property.lat && property.lon) ? (
                 <MapView
@@ -772,12 +774,10 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   className="h-96"
                 />
               ) : mapUrl ? (
-=======
-=======
->>>>>>> 5c135a1 (edit fully)
+
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('property_card.location')}</h3>
               {mapUrl ? (
->>>>>>> 5c135a1 (edit fully)
+
                 <iframe
                   src={mapUrl}
                   className="w-full h-96 rounded-2xl border-0 shadow-lg"
@@ -833,7 +833,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                         </p>
                       </div>
                     )}
->>>>>>> 5c135a1 (edit fully)
+
                   </div>
                 </div>
               )}
