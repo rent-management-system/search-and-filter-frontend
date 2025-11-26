@@ -173,15 +173,15 @@ const Index = () => {
           <div className="grid grid-cols-3 gap-6 pt-8">
             <div>
               <p className="text-3xl font-bold text-primary">1000+</p>
-              <p className="text-sm text-muted-foreground">Properties</p>
+              <p className="text-sm text-muted-foreground">{t('index.properties_available')}</p>
             </div>
             <div>
               <p className="text-3xl font-bold text-primary">500+</p>
-              <p className="text-sm text-muted-foreground">Happy Tenants</p>
+              <p className="text-sm text-muted-foreground">{t('index.happy_tenants')}</p>
             </div>
             <div>
               <p className="text-3xl font-bold text-primary">95%</p>
-              <p className="text-sm text-muted-foreground">Satisfaction</p>
+              <p className="text-sm text-muted-foreground">{t('index.satisfaction')}</p>
             </div>
           </div>
         </div>
@@ -191,8 +191,8 @@ const Index = () => {
       <section className="py-20 bg-muted/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Why Choose RentAI?</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">Experience the future of rental property management with AI-powered recommendations</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('index.why_choose_rentai')}</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">{t('index.experience_the_future')}</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -206,8 +206,8 @@ const Index = () => {
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
-              <h3 className="text-xl font-semibold mb-2">AI-Powered Matching</h3>
-              <p className="text-muted-foreground">Our advanced AI analyzes your preferences and finds the perfect properties for you</p>
+              <h3 className="text-xl font-semibold mb-2">{t('index.ai_powered_matching')}</h3>
+              <p className="text-muted-foreground">{t('index.advanced_ai_analysis')}</p>
             </motion.div>
 
             <motion.div
@@ -220,8 +220,8 @@ const Index = () => {
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <span className="text-2xl">📍</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Location Intelligence</h3>
-              <p className="text-muted-foreground">Find properties based on proximity to work, transport costs, and local amenities</p>
+              <h3 className="text-xl font-semibold mb-2">{t('index.location_intelligence')}</h3>
+              <p className="text-muted-foreground">{t('index.find_properties_based_on_proximity')}</p>
             </motion.div>
 
             <motion.div
@@ -234,8 +234,8 @@ const Index = () => {
               <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
                 <span className="text-2xl">💰</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Budget Optimization</h3>
-              <p className="text-muted-foreground">Get recommendations that fit your budget with detailed affordability analysis</p>
+              <h3 className="text-xl font-semibold mb-2">{t('index.budget_optimization')}</h3>
+              <p className="text-muted-foreground">{t('index.get_recommendations_that_fit_your_budget')}</p>
             </motion.div>
           </div>
         </div>
@@ -250,9 +250,9 @@ const Index = () => {
             viewport={{ once: true }}
             className="mb-8"
           >
-            <h2 className="text-4xl font-bold mb-2">Find Your Perfect Home</h2>
+            <h2 className="text-4xl font-bold mb-2">{t('index.find_your_perfect_home')}</h2>
             <p className="text-lg text-muted-foreground">
-              Get AI-powered recommendations or browse all properties
+              {t('index.get_ai_powered_recommendations')}
             </p>
           </motion.div>
 
@@ -264,7 +264,7 @@ const Index = () => {
               </TabsTrigger>
               <TabsTrigger value="all" className="gap-2">
                 <HomeIcon className="h-4 w-4" />
-                All Properties
+                {t('index.all_properties')}
               </TabsTrigger>
               {HAS_PROPERTY_SEARCH && (
                 <TabsTrigger value="browse" className="gap-2">
@@ -285,12 +285,12 @@ const Index = () => {
               ) : (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-2xl font-bold">Your Personalized Recommendations (AI)</h3>
+                    <h3 className="text-2xl font-bold">{t('index.your_personalized_recommendations')}</h3>
                     <button
                       onClick={() => setRecommendations([])}
                       className="text-sm text-primary hover:underline"
                     >
-                      New Search
+                      {t('index.new_search')}
                     </button>
                   </div>
 
@@ -335,8 +335,8 @@ const Index = () => {
             {/* All Approved Properties Tab */}
             <TabsContent value="all" className="space-y-8">
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold mb-2">All Approved Properties</h3>
-                <p className="text-muted-foreground">Browse our complete collection of verified properties</p>
+                <h3 className="text-2xl font-bold mb-2">{t('index.all_approved_properties')}</h3>
+                <p className="text-muted-foreground">{t('index.browse_our_complete_collection')}</p>
               </div>
 
               {approvedLoading ? (
@@ -362,7 +362,7 @@ const Index = () => {
               ) : (
                 <div className="text-center py-12">
                   <HomeIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-lg text-muted-foreground">No approved properties available at the moment</p>
+                  <p className="text-lg text-muted-foreground">{t('index.no_approved_properties')}</p>
                 </div>
               )}
             </TabsContent>
@@ -373,13 +373,13 @@ const Index = () => {
               <Card className="shadow-premium">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Search className="h-5 w-5 text-primary" /> Manual Search (Adama)
+                    <Search className="h-5 w-5 text-primary" /> {t('index.manual_search')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {/* Price Range Selection */}
                   <div className="space-y-3">
-                    <label className="block text-sm font-medium">Select Your Budget Range</label>
+                    <label className="block text-sm font-medium">{t('index.select_your_budget_range')}</label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       {priceRanges.map((range) => (
                         <button
@@ -398,7 +398,7 @@ const Index = () => {
                           }`}
                         >
                           <div className="font-semibold text-foreground">{range.label}</div>
-                          <div className="text-xs text-muted-foreground mt-1">Monthly rent</div>
+                          <div className="text-xs text-muted-foreground mt-1">{t('index.monthly_rent')}</div>
                         </button>
                       ))}
                     </div>
@@ -407,7 +407,7 @@ const Index = () => {
                   <div className="grid md:grid-cols-2 gap-4 mt-6">
                     {/* House Type */}
                     <div>
-                      <label className="block text-sm font-medium mb-2">House Type</label>
+                      <label className="block text-sm font-medium mb-2">{t('index.house_type')}</label>
                       <select
                         className="w-full h-11 rounded-lg border-2 bg-background px-4 font-medium"
                         value={filters.house_type}
@@ -417,16 +417,16 @@ const Index = () => {
                           if (selectedPriceRange) setSubmittedFilters(newFilters);
                         }}
                       >
-                        <option value="">Any Type</option>
-                        <option value="apartment">Apartment</option>
-                        <option value="house">House</option>
-                        <option value="villa">Villa</option>
-                        <option value="studio">Studio</option>
+                        <option value="">{t('index.any_type')}</option>
+                        <option value="apartment">{t('index.apartment')}</option>
+                        <option value="house">{t('index.house')}</option>
+                        <option value="villa">{t('index.villa')}</option>
+                        <option value="studio">{t('index.studio')}</option>
                       </select>
                     </div>
                     {/* Sort By */}
                     <div>
-                      <label className="block text-sm font-medium mb-2">Sort By</label>
+                      <label className="block text-sm font-medium mb-2">{t('properties.sortBy')}</label>
                       <select
                         className="w-full h-11 rounded-lg border-2 bg-background px-4 font-medium"
                         value={filters.sort_by}
@@ -436,8 +436,8 @@ const Index = () => {
                           if (selectedPriceRange) setSubmittedFilters(newFilters);
                         }}
                       >
-                        <option value="distance">Distance</option>
-                        <option value="price">Price</option>
+                        <option value="distance">{t('properties.distance')}</option>
+                        <option value="price">{t('properties.price')}</option>
                       </select>
                     </div>
                   </div>
@@ -445,7 +445,7 @@ const Index = () => {
                   {/* Amenities + Distance */}
                   <div className="grid md:grid-cols-2 gap-6 mt-6">
                     <div>
-                      <label className="block text-sm font-medium mb-3">Amenities</label>
+                      <label className="block text-sm font-medium mb-3">{t('index.amenities')}</label>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {['wifi','parking','security','water','balcony','garden'].map((a) => (
                           <label key={a} className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
@@ -462,13 +462,13 @@ const Index = () => {
                                 if (selectedPriceRange) setSubmittedFilters(newFilters);
                               }}
                             />
-                            <span className="capitalize font-medium">{a}</span>
+                            <span className="capitalize font-medium">{t(`index.amenities_options.${a}`)}</span>
                           </label>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-3">Max Distance: <span className="text-primary font-bold">{filters.max_distance_km} km</span></label>
+                      <label className="block text-sm font-medium mb-3">{t('index.max_distance')}: <span className="text-primary font-bold">{filters.max_distance_km} km</span></label>
                       <input
                         type="range"
                         min={1}
@@ -501,7 +501,7 @@ const Index = () => {
                   {!selectedPriceRange && (
                     <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                       <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
-                        👆 Select a price range above to start browsing properties
+                        {t('index.select_price_range_to_start')}
                       </p>
                     </div>
                   )}
@@ -513,8 +513,8 @@ const Index = () => {
                           <Search className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <p className="font-semibold text-green-800 dark:text-green-200">Searching properties...</p>
-                          <p className="text-sm text-green-600 dark:text-green-300">Results update automatically as you adjust filters</p>
+                          <p className="font-semibold text-green-800 dark:text-green-200">{t('index.searching_properties')}</p>
+                          <p className="text-sm text-green-600 dark:text-green-300">{t('index.results_update_automatically')}</p>
                         </div>
                       </div>
                       <Button
@@ -531,14 +531,14 @@ const Index = () => {
                               amenities: filters.amenities,
                               max_distance_km: filters.max_distance_km,
                             });
-                            toast.success('Search preferences saved!');
+                            toast.success(t('index.search_preferences_saved'));
                           } catch (e) {
                             console.error('Save search failed', e);
-                            toast.error('Failed to save search');
+                            toast.error(t('index.failed_to_save_search'));
                           }
                         }}
                       >
-                        Save Search
+                        {t('index.save_search')}
                       </Button>
                     </div>
                   )}
@@ -583,7 +583,7 @@ const Index = () => {
             >
               <h2 className="text-4xl font-bold mb-2">{t('nav.dashboard')}</h2>
               <p className="text-lg text-muted-foreground">
-                Manage your searches and recommendations
+                {t('index.manage_your_searches')}
               </p>
             </motion.div>
 
@@ -655,9 +655,9 @@ const Index = () => {
             className="space-y-8"
           >
             <div className="text-center">
-              <h2 className="text-4xl font-bold mb-4">Contact Us</h2>
+              <h2 className="text-4xl font-bold mb-4">{t('contactUs')}</h2>
               <p className="text-lg text-muted-foreground">
-                Get in touch with our team. We're here to help!
+                {t('index.get_in_touch')}
               </p>
             </div>
 
@@ -667,7 +667,7 @@ const Index = () => {
                   <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                     <Mail className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold">Email</h3>
+                  <h3 className="font-semibold">{t('index.email')}</h3>
                   <p className="text-sm text-muted-foreground">contact@rentai.et</p>
                 </CardContent>
               </Card>
@@ -677,7 +677,7 @@ const Index = () => {
                   <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                     <Phone className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold">Phone</h3>
+                  <h3 className="font-semibold">{t('index.phone')}</h3>
                   <p className="text-sm text-muted-foreground">+251 911 123 456</p>
                 </CardContent>
               </Card>
@@ -687,7 +687,7 @@ const Index = () => {
                   <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
                     <MapPin className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold">Office</h3>
+                  <h3 className="font-semibold">{t('index.office')}</h3>
                   <p className="text-sm text-muted-foreground">Bole, Addis Ababa</p>
                 </CardContent>
               </Card>
