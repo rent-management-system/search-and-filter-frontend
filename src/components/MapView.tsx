@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import GebetaMap from '@gebeta/tiles';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, Maximize2 } from 'lucide-react';
+import { X, Maximize2, MapPin } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ErrorBoundary } from './ErrorBoundary';
 
@@ -120,28 +120,46 @@ export const MapView = ({
   }
 
   const mapFallback = (
-    <Card className={`p-6 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 ${className}`}>
-      <div className="text-center space-y-2">
-        <p className="font-semibold text-amber-800 dark:text-amber-200">
-          Map Loading Error
-        </p>
-        <p className="text-sm text-amber-700 dark:text-amber-300">
-          Unable to load the map. Please try viewing on Google Maps.
-        </p>
-        <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-          {latitude.toFixed(6)}, {longitude.toFixed(6)}
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => window.open(`https://www.google.com/maps?q=${latitude},${longitude}`, '_blank')}
-          className="mt-3"
-        >
-          View on Google Maps
-        </Button>
+    <Card className={`overflow-hidden ${className}`}>
+      <div className="relative h-96 w-full">
+        {/* Display Google Maps as fallback */}
+        <iframe
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          loading="lazy"
+          allowFullScreen
+          referrerPolicy="no-referrer-when-downgrade"
+          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${latitude},${longitude}&zoom=14`}
+        />
+        
+        {/* Overlay notification */}
+        <div className="absolute top-3 left-3 right-3 z-10">
+          <div className="bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm flex items-center gap-2">
+            <MapPin className="h-4 w-4 flex-shrink-0" />
+            <span className="font-medium">Showing Google Maps (Gebeta Maps temporarily unavailable)</span>
+          </div>
+        </div>
+
+        {showFullscreenButton && (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="absolute bottom-3 right-3 shadow-lg z-10"
+            onClick={() => window.open(`https://www.google.com/maps?q=${latitude},${longitude}`, '_blank')}
+          >
+            <MapPin className="h-4 w-4 mr-2" />
+            Open in Google Maps
+          </Button>
+        )}
       </div>
     </Card>
   );
+
+  // Don't even try to render the map if we detect errors
+  if (mapError) {
+    return mapFallback;
+  }
 
   return (
     <>
