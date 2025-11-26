@@ -39,12 +39,14 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
   const [likes, setLikes] = useState<number>(property.like_count ?? 0);
   const [dislikes, setDislikes] = useState<number>(property.dislike_count ?? 0);
 
-  // Compute a robust map URL from either preview_url or map_url and make it absolute if needed
-  const mapUrl = useMemo(() => {
-    const raw = property.preview_url || property.map_url || '';
-    if (!raw) return null;
-    return /^https?:/i.test(raw) ? raw : `${SEARCH_BASE}${raw}`;
-  }, [property.preview_url, property.map_url]);
+  // Check if property has valid coordinates for Gebeta Maps
+  const hasValidCoordinates = useMemo(() => {
+    return property.lat && property.lon && 
+           typeof property.lat === 'number' && 
+           typeof property.lon === 'number' &&
+           !isNaN(property.lat) && 
+           !isNaN(property.lon);
+  }, [property.lat, property.lon]);
 
   // Compute full image URL from backend
   const imageUrl = useMemo(() => {
@@ -451,33 +453,13 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   >
                     {t('properties.viewDetails')}
                   </Button>
-                  {(mapUrl || (property.lat && property.lon)) && (
+                  {hasValidCoordinates && (
                     <Button
                       variant="outline"
                       className="font-semibold"
-                      onClick={() => {
-                        if (mapUrl) {
-                          window.open(mapUrl, '_blank');
-                        } else if (property.lat && property.lon) {
-                          setDetailsOpen(true);
-                        }
-                      }}
+                      onClick={() => setDetailsOpen(true)}
                     >
-
-
                       <MapPin className="h-4 w-4 mr-2" />
-                      {t('properties.viewOnMap') || 'View on Map'}
-
-                      {t('properties.viewOnMap')}
-
-                      {t('properties.viewOnMap')}
-
-
-                      {t('properties.viewOnMap')}
-
-
-                      {t('properties.viewOnMap')}
-
                       {t('properties.viewOnMap')}
                     </Button>
                   )}
@@ -764,9 +746,8 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
 
             {/* Map */}
             <div>
-
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Location</h3>
-              {(property.lat && property.lon) ? (
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('property_card.location')}</h3>
+              {hasValidCoordinates ? (
                 <MapView
                   latitude={property.lat}
                   longitude={property.lon}
