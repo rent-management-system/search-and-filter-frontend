@@ -463,7 +463,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                         }
                       }}
                     >
-<<<<<<< HEAD
+
 
                       <MapPin className="h-4 w-4 mr-2" />
                       {t('properties.viewOnMap') || 'View on Map'}
@@ -472,12 +472,13 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
 
                       {t('properties.viewOnMap')}
 
-=======
+
                       {t('properties.viewOnMap')}
 
-=======
+
                       {t('properties.viewOnMap')}
->>>>>>> 5c135a1 (edit fully)
+
+                      {t('properties.viewOnMap')}
                     </Button>
                   )}
                 </div>
@@ -763,10 +764,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
 
             {/* Map */}
             <div>
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
+
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Location</h3>
               {(property.lat && property.lon) ? (
                 <MapView
@@ -780,8 +778,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                 />
               ) : mapUrl ? (
 
-=======
->>>>>>> 5c135a1 (edit fully)
+
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('property_card.location')}</h3>
               {mapUrl ? (
 
@@ -805,7 +802,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     <p className="font-semibold text-foreground text-lg">
                       {property.location || t('property_card.location_info_available')}
                     </p>
-<<<<<<< HEAD
+
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground font-medium">
                         📍 Map preview not available
@@ -813,8 +810,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                       <p className="text-xs text-muted-foreground/80">
                         Location coordinates are required to display the map
                       </p>
-                    </div>
-=======
+                    </div
                     {(property.lat && property.lon) ? (
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">
