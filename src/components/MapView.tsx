@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import GebetaMap from '@gebeta/tiles';
-import type { GebetaMapRef } from '@gebeta/tiles';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X, Maximize2 } from 'lucide-react';
@@ -26,11 +25,7 @@ export const MapView = ({
   className = '',
 }: MapViewProps) => {
   const apiKey = import.meta.env.VITE_GEBETA_MAPS_API_KEY;
-  const mapRef = useRef<GebetaMapRef>(null);
-  const fullscreenMapRef = useRef<GebetaMapRef>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [mapError, setMapError] = useState(false);
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   // Validate coordinates
   const isValidCoordinates = 
@@ -43,19 +38,7 @@ export const MapView = ({
     longitude >= -180 && 
     longitude <= 180;
 
-  // Add marker when map loads
-  const handleMapLoaded = (ref: React.RefObject<GebetaMapRef>) => {
-    setIsMapLoaded(true);
-    if (ref.current) {
-      const mapInstance = ref.current.getMapInstance();
-      const marker = ref.current.addMarker();
-      if (marker && mapInstance) {
-        marker.setLngLat([longitude, latitude]).addTo(mapInstance);
-      }
-    }
-  };
-
-  if (!apiKey || apiKey === 'YOUR_GEBETA_MAPS_API_KEY') {
+  if (!apiKey || apiKey === 'YOUR_GEBETA_MAPS_API_KEY' || apiKey === 'your_gebeta_maps_api_key_here') {
     return (
       <Card className={`p-6 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 ${className}`}>
         <div className="text-center space-y-2">
@@ -68,12 +51,12 @@ export const MapView = ({
           <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
             Get your API key at{' '}
             <a
-              href="https://gebeta.app/"
+              href="https://mapapi.gebeta.app/"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:text-amber-800"
             >
-              gebeta.app
+              mapapi.gebeta.app
             </a>
           </p>
         </div>
@@ -96,65 +79,28 @@ export const MapView = ({
     );
   }
 
-  if (mapError) {
-    return (
-      <Card className={`p-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 ${className}`}>
-        <div className="text-center space-y-2">
-          <p className="font-semibold text-red-800 dark:text-red-200">
-            Map Loading Error
-          </p>
-          <p className="text-sm text-red-700 dark:text-red-300">
-            Unable to load the map. Please check your API key and internet connection.
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setMapError(false)}
-            className="mt-2"
-          >
-            Retry
-          </Button>
-        </div>
-      </Card>
-    );
-  }
-
-  const MapContent = ({ 
-    height = '400px', 
-    ref,
-    isFullscreenMap = false 
-  }: { 
-    height?: string;
-    ref: React.RefObject<GebetaMapRef>;
-    isFullscreenMap?: boolean;
-  }) => (
-    <div className="relative" style={{ height, width: '100%' }}>
-      <GebetaMap
-        ref={ref}
-        apiKey={apiKey}
-        center={[longitude, latitude]}
-        zoom={zoom}
-        onMapLoaded={() => handleMapLoaded(ref)}
-        style={{ width: '100%', height: '100%' }}
-      />
-      
-      {showFullscreenButton && !isFullscreenMap && (
-        <Button
-          variant="secondary"
-          size="sm"
-          className="absolute top-3 right-3 shadow-lg z-10"
-          onClick={() => setIsFullscreen(true)}
-        >
-          <Maximize2 className="h-4 w-4" />
-        </Button>
-      )}
-    </div>
-  );
-
   return (
     <>
       <Card className={`overflow-hidden ${className}`}>
-        <MapContent ref={mapRef} />
+        <div className="relative h-96 w-full">
+          <GebetaMap
+            apiKey={apiKey}
+            center={[longitude, latitude]}
+            zoom={zoom}
+            style={{ width: '100%', height: '100%' }}
+          />
+          
+          {showFullscreenButton && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="absolute top-3 right-3 shadow-lg z-10"
+              onClick={() => setIsFullscreen(true)}
+            >
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </Card>
 
       {/* Fullscreen Dialog */}
@@ -178,7 +124,12 @@ export const MapView = ({
               Close
             </Button>
             
-            <MapContent ref={fullscreenMapRef} height="100%" isFullscreenMap={true} />
+            <GebetaMap
+              apiKey={apiKey}
+              center={[longitude, latitude]}
+              zoom={zoom}
+              style={{ width: '100%', height: '100%' }}
+            />
           </div>
         </DialogContent>
       </Dialog>

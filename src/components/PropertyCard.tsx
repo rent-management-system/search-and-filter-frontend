@@ -776,20 +776,6 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   showFullscreenButton={true}
                   className="h-96"
                 />
-              ) : mapUrl ? (
-
-
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('property_card.location')}</h3>
-              {mapUrl ? (
-
-                <iframe
-                  src={mapUrl}
-                  className="w-full h-96 rounded-2xl border-0 shadow-lg"
-                  title={t('property_card.property_location')}
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  allowFullScreen
-                />
               ) : (
                 <div className="w-full h-96 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gradient-to-br from-muted/30 to-muted/10 flex flex-col items-center justify-center gap-4 p-8">
                   <div className="relative">
@@ -810,7 +796,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                       <p className="text-xs text-muted-foreground/80">
                         Location coordinates are required to display the map
                       </p>
-                    </div
+                    </div>
                     {(property.lat && property.lon) ? (
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">
