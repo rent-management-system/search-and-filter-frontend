@@ -764,8 +764,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
 
             {/* Map */}
             <div>
-
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Location</h3>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('property_card.location')}</h3>
               {(property.lat && property.lon) ? (
                 <MapView
                   latitude={property.lat}
@@ -777,11 +776,6 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                   className="h-96"
                 />
               ) : mapUrl ? (
-
-
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('property_card.location')}</h3>
-              {mapUrl ? (
-
                 <iframe
                   src={mapUrl}
                   className="w-full h-96 rounded-2xl border-0 shadow-lg"
@@ -810,7 +804,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                       <p className="text-xs text-muted-foreground/80">
                         Location coordinates are required to display the map
                       </p>
-                    </div
+                    </div>
                     {(property.lat && property.lon) ? (
                       <div className="space-y-3">
                         <p className="text-sm text-muted-foreground">
