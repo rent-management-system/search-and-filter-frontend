@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import GebetaMap from '@gebeta/tiles';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X, Maximize2 } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { ErrorBoundary } from './ErrorBoundary';
 
 interface MapViewProps {
   latitude: number;
@@ -26,6 +27,7 @@ export const MapView = ({
 }: MapViewProps) => {
   const apiKey = import.meta.env.VITE_GEBETA_MAPS_API_KEY;
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mapError, setMapError] = useState(false);
 
   // Validate coordinates
   const isValidCoordinates = 
@@ -79,29 +81,93 @@ export const MapView = ({
     );
   }
 
-  return (
-    <>
-      <Card className={`overflow-hidden ${className}`}>
-        <div className="relative h-96 w-full">
-          <GebetaMap
-            apiKey={apiKey}
-            center={[longitude, latitude]}
-            zoom={zoom}
-            style={{ width: '100%', height: '100%' }}
-          />
-          
-          {showFullscreenButton && (
-            <Button
-              variant="secondary"
-              size="sm"
-              className="absolute top-3 right-3 shadow-lg z-10"
-              onClick={() => setIsFullscreen(true)}
-            >
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-          )}
+  // Catch map loading errors
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      if (event.message?.includes('gebeta') || event.message?.includes('map')) {
+        setMapError(true);
+        event.preventDefault();
+      }
+    };
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  if (mapError) {
+    return (
+      <Card className={`p-6 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 ${className}`}>
+        <div className="text-center space-y-2">
+          <p className="font-semibold text-yellow-800 dark:text-yellow-200">
+            Map Temporarily Unavailable
+          </p>
+          <p className="text-sm text-yellow-700 dark:text-yellow-300">
+            The map service is currently experiencing issues. Please use the coordinates below:
+          </p>
+          <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
+            Coordinates: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open(`https://www.google.com/maps?q=${latitude},${longitude}`, '_blank')}
+            className="mt-3"
+          >
+            View on Google Maps
+          </Button>
         </div>
       </Card>
+    );
+  }
+
+  const mapFallback = (
+    <Card className={`p-6 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 ${className}`}>
+      <div className="text-center space-y-2">
+        <p className="font-semibold text-amber-800 dark:text-amber-200">
+          Map Loading Error
+        </p>
+        <p className="text-sm text-amber-700 dark:text-amber-300">
+          Unable to load the map. Please try viewing on Google Maps.
+        </p>
+        <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+          {latitude.toFixed(6)}, {longitude.toFixed(6)}
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => window.open(`https://www.google.com/maps?q=${latitude},${longitude}`, '_blank')}
+          className="mt-3"
+        >
+          View on Google Maps
+        </Button>
+      </div>
+    </Card>
+  );
+
+  return (
+    <>
+      <ErrorBoundary fallback={mapFallback}>
+        <Card className={`overflow-hidden ${className}`}>
+          <div className="relative h-96 w-full">
+            <GebetaMap
+              apiKey={apiKey}
+              center={[longitude, latitude]}
+              zoom={zoom}
+              style={{ width: '100%', height: '100%' }}
+            />
+            
+            {showFullscreenButton && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="absolute top-3 right-3 shadow-lg z-10"
+                onClick={() => setIsFullscreen(true)}
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </Card>
+      </ErrorBoundary>
 
       {/* Fullscreen Dialog */}
       <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
@@ -124,12 +190,14 @@ export const MapView = ({
               Close
             </Button>
             
-            <GebetaMap
-              apiKey={apiKey}
-              center={[longitude, latitude]}
-              zoom={zoom}
-              style={{ width: '100%', height: '100%' }}
-            />
+            <ErrorBoundary fallback={mapFallback}>
+              <GebetaMap
+                apiKey={apiKey}
+                center={[longitude, latitude]}
+                zoom={zoom}
+                style={{ width: '100%', height: '100%' }}
+              />
+            </ErrorBoundary>
           </div>
         </DialogContent>
       </Dialog>

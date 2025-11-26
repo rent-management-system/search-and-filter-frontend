@@ -54,14 +54,13 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
     const raw = property.image_url || 
                 property.photo || 
                 property.photos?.[0] || 
-                property.preview_url || 
                 (property.images && property.images.length > 0 ? property.images[0] : null);
     if (!raw) return null;
     // If it's already a full URL, return it
     if (/^https?:/i.test(raw)) return raw;
     // Otherwise, construct full URL from backend base
     return `${SEARCH_BASE}${raw.startsWith('/') ? raw : '/' + raw}`;
-  }, [property.image_url, property.photo, property.photos, property.preview_url, property.images]);
+  }, [property.image_url, property.photo, property.photos, property.images]);
 
   // Extract owner contact information from nested object or direct properties
   const ownerContact = useMemo(() => {
