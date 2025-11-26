@@ -16,7 +16,7 @@ const resources = {
         title: 'Your AI Rent Management System',
         beta: 'βeta',
         subtitle: 'Find your perfect home with intelligent recommendations powered by AI',
-        addProperties: 'Add Properties',
+        addProperties: 'search Properties',
         viewProperties: 'View Properties',
       },
       // Language selector
