@@ -65,22 +65,79 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
     return `${SEARCH_BASE}${raw.startsWith('/') ? raw : '/' + raw}`;
   }, [property.image_url, property.photo, property.photos, property.images]);
 
+  // Get property ID with fallback options
+  const propertyId = useMemo(() => {
+    return property.id || property._id || property.property_id || property.propertyId;
+  }, [property.id, property._id, property.property_id, property.propertyId]);
+
   // Extract owner contact information from nested object or direct properties
   const ownerContact = useMemo(() => {
-    if (property.owner_contact) {
-      return {
-        name: property.owner_contact.name,
+    console.log('=== PropertyCard Owner Contact Debug ===');
+    console.log('Property ID:', propertyId);
+    console.log('Property Title:', property.title);
+    console.log('Full property object:', property);
+    console.log('Owner contact fields:', {
+      owner_contact: property.owner_contact,
+      owner: property.owner,
+      contact: property.contact,
+      owner_name: property.owner_name,
+      owner_phone: property.owner_phone,
+      owner_email: property.owner_email,
+      phone: property.phone,
+      contact_phone: property.contact_phone,
+      landlord: property.landlord,
+      landlord_phone: property.landlord_phone,
+      landlord_email: property.landlord_email,
+    });
+    
+    let extractedContact: { name?: string; email?: string; phone?: string } = {};
+    
+    // Priority 1: owner_contact object
+    if (property.owner_contact && typeof property.owner_contact === 'object') {
+      extractedContact = {
+        name: property.owner_contact.name || property.owner_contact.full_name,
         email: property.owner_contact.email,
-        phone: property.owner_contact.phone,
+        phone: property.owner_contact.phone || property.owner_contact.phone_number || property.owner_contact.phoneNumber,
       };
     }
-    // Fallback to direct properties if owner_contact doesn't exist
-    return {
-      name: property.owner_name,
-      email: property.owner_email,
-      phone: property.owner_phone,
-    };
-  }, [property.owner_contact, property.owner_name, property.owner_email, property.owner_phone]);
+    // Priority 2: owner object
+    else if (property.owner && typeof property.owner === 'object') {
+      extractedContact = {
+        name: property.owner.name || property.owner.full_name || property.owner.fullName,
+        email: property.owner.email,
+        phone: property.owner.phone || property.owner.phone_number || property.owner.phoneNumber,
+      };
+    }
+    // Priority 3: contact object
+    else if (property.contact && typeof property.contact === 'object') {
+      extractedContact = {
+        name: property.contact.name || property.contact.full_name,
+        email: property.contact.email,
+        phone: property.contact.phone || property.contact.phone_number,
+      };
+    }
+    // Priority 4: landlord object
+    else if (property.landlord && typeof property.landlord === 'object') {
+      extractedContact = {
+        name: property.landlord.name || property.landlord.full_name,
+        email: property.landlord.email,
+        phone: property.landlord.phone || property.landlord.phone_number,
+      };
+    }
+    // Priority 5: Direct flat properties
+    else {
+      extractedContact = {
+        name: property.owner_name || property.ownerName || property.landlord_name || property.landlordName || 'Property Owner',
+        email: property.owner_email || property.ownerEmail || property.landlord_email || property.landlordEmail,
+        phone: property.owner_phone || property.ownerPhone || property.phone || property.contact_phone || property.contactPhone || property.landlord_phone || property.landlordPhone,
+      };
+    }
+    
+    console.log('Extracted contact:', extractedContact);
+    console.log('========================================');
+    
+    return extractedContact;
+  }, [property, propertyId]);
 
   // Enhanced AI reason parsing with better structure
   const aiPoints = useMemo((): AIPoints | null => {
@@ -157,22 +214,22 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
       return;
     }
     
-    if (!property.id) {
+    if (!propertyId) {
       toast.error('Cannot save feedback: Invalid property ID');
-      console.error('Missing property.id for property:', property);
+      console.error('Missing property ID. Checked fields: id, _id, property_id, propertyId. Property:', property);
       return;
     }
     
     try {
       console.log('Sending feedback:', {
         tenant_preference_id: tenantPreferenceId,
-        property_id: property.id,
+        property_id: propertyId,
         liked: false,
         note,
       });
       await recommendationAPI.sendFeedback({
         tenant_preference_id: tenantPreferenceId,
-        property_id: property.id,
+        property_id: propertyId,
         liked: false,
         note,
       });
@@ -211,22 +268,22 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
           return;
         }
         
-        if (!property.id) {
+        if (!propertyId) {
           toast.error('Cannot submit feedback: Invalid property ID');
-          console.error('Missing property.id for property:', property);
+          console.error('Missing property ID. Checked fields: id, _id, property_id, propertyId. Property:', property);
           return;
         }
         
         console.log('Sending feedback:', {
           tenant_preference_id: tenantPreferenceId,
-          property_id: property.id,
+          property_id: propertyId,
           liked: feedback === 'like',
           note: note || undefined,
         });
         
         await recommendationAPI.sendFeedback({
           tenant_preference_id: tenantPreferenceId,
-          property_id: property.id,
+          property_id: propertyId,
           liked: feedback === 'like',
           note: note || undefined,
         });
