@@ -156,7 +156,7 @@ export const MapView = ({
           console.warn('Gebeta Maps loading timeout, switching to Google Maps');
           handleMapError();
         }
-      }, 10000); // 10 second timeout
+      }, 3000); // 3 second timeout for faster fallback
     }
     
     return () => {
@@ -240,35 +240,26 @@ export const MapView = ({
         <Card className={`overflow-hidden ${className}`}>
           <div className="relative h-96 w-full">
             {useGoogleMapsFallback ? (
-              // Google Maps Fallback
+              // Google Maps Fallback - Silent
               <>
                 <iframe
                   width="100%"
                   height="100%"
                   style={{ border: 0 }}
-                  loading="lazy"
+                  loading="eager"
                   allowFullScreen
                   referrerPolicy="no-referrer-when-downgrade"
                   src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${latitude},${longitude}&zoom=${zoom}`}
                 />
                 
-                {/* Overlay notification */}
-                <div className="absolute top-3 left-3 right-3 z-10">
-                  <div className="bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm flex items-center gap-2">
-                    <MapPin className="h-4 w-4 flex-shrink-0" />
-                    <span className="font-medium">Using Google Maps (Gebeta Maps unavailable)</span>
-                  </div>
-                </div>
-
                 {showFullscreenButton && (
                   <Button
                     variant="secondary"
                     size="sm"
-                    className="absolute bottom-3 right-3 shadow-lg z-10"
-                    onClick={() => window.open(`https://www.google.com/maps?q=${latitude},${longitude}`, '_blank')}
+                    className="absolute top-3 right-3 shadow-lg z-10"
+                    onClick={() => setIsFullscreen(true)}
                   >
-                    <MapPin className="h-4 w-4 mr-2" />
-                    Open in Google Maps
+                    <Maximize2 className="h-4 w-4" />
                   </Button>
                 )}
               </>
@@ -331,26 +322,16 @@ export const MapView = ({
             </Button>
             
             {useGoogleMapsFallback ? (
-              // Google Maps Fallback for fullscreen
-              <>
-                <iframe
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                  allowFullScreen
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${latitude},${longitude}&zoom=${zoom + 1}`}
-                />
-                
-                {/* Overlay notification */}
-                <div className="absolute top-16 left-3 right-3 z-20">
-                  <div className="bg-amber-500 text-white px-4 py-2 rounded-lg shadow-lg text-sm flex items-center gap-2">
-                    <MapPin className="h-4 w-4 flex-shrink-0" />
-                    <span className="font-medium">Using Google Maps (Gebeta Maps unavailable)</span>
-                  </div>
-                </div>
-              </>
+              // Google Maps Fallback for fullscreen - Silent
+              <iframe
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                loading="eager"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+                src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${latitude},${longitude}&zoom=${zoom + 1}`}
+              />
             ) : (
               // Gebeta Maps for fullscreen
               <>
