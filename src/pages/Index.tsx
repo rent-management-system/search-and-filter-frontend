@@ -18,7 +18,7 @@ import { Steps } from '@/components/Steps';
 
 const Index = () => {
   const { t } = useTranslation();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, token } = useAuthStore();
   const [activeTab, setActiveTab] = useState('ai');
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [tenantPrefId, setTenantPrefId] = useState<number | null>(null);
@@ -28,7 +28,6 @@ const Index = () => {
     price_range: '',
     house_type: '',
     amenities: [] as string[],
-    max_distance_km: 20,
     sort_by: 'distance',
   });
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>('');
@@ -78,7 +77,6 @@ const Index = () => {
           max_price,
           house_type: f.house_type || undefined,
           amenities: f.amenities.length ? f.amenities : undefined,
-          max_distance_km: f.max_distance_km,
           sort_by: f.sort_by,
         },
         { signal }
@@ -299,7 +297,20 @@ const Index = () => {
                           property={property}
                           showAIReason
                           showContactOwner={true}
+                          tenantPreferenceId={tenantPrefId}
                           onFeedback={async (feedback) => {
+                            // Check authentication first
+                            if (!isAuthenticated || !token) {
+                              toast.error('Please sign in to submit feedback', {
+                                description: 'You need to be authenticated to provide feedback on properties.',
+                                action: {
+                                  label: 'Sign In',
+                                  onClick: () => window.location.href = 'https://rental-user-management-frontend-sigma.vercel.app/'
+                                }
+                              });
+                              return;
+                            }
+                            
                             if (!tenantPrefId) return;
                             try {
                               await recommendationAPI.sendFeedback({
@@ -307,8 +318,18 @@ const Index = () => {
                                 property_id: property.id,
                                 liked: feedback === 'like',
                               });
-                            } catch (e) {
+                            } catch (e: any) {
                               console.error('Feedback submit failed', e);
+                              // Handle 401 specifically
+                              if (e?.response?.status === 401) {
+                                toast.error('Authentication expired', {
+                                  description: 'Please sign in again to continue.',
+                                  action: {
+                                    label: 'Sign In',
+                                    onClick: () => window.location.href = 'https://rental-user-management-frontend-sigma.vercel.app/'
+                                  }
+                                });
+                              }
                             }
                           }}
                         />
@@ -454,34 +475,6 @@ const Index = () => {
                         ))}
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-3">{t('index.max_distance')}: <span className="text-primary font-bold">{filters.max_distance_km} km</span></label>
-                      <input
-                        type="range"
-                        min={1}
-                        max={30}
-                        step={1}
-                        value={filters.max_distance_km}
-                        onChange={(e) => {
-                          setFilters({ ...filters, max_distance_km: Number(e.target.value) });
-                        }}
-                        onMouseUp={(e) => {
-                          if (selectedPriceRange) {
-                            setSubmittedFilters({ ...filters, max_distance_km: Number((e.target as HTMLInputElement).value) });
-                          }
-                        }}
-                        onTouchEnd={(e) => {
-                          if (selectedPriceRange) {
-                            setSubmittedFilters({ ...filters, max_distance_km: Number((e.target as HTMLInputElement).value) });
-                          }
-                        }}
-                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>1 km</span>
-                        <span>30 km</span>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Info Message */}
@@ -516,7 +509,6 @@ const Index = () => {
                               max_price: range?.max,
                               house_type: filters.house_type || undefined,
                               amenities: filters.amenities,
-                              max_distance_km: filters.max_distance_km,
                             });
                             toast.success(t('index.search_preferences_saved'));
                           } catch (e) {

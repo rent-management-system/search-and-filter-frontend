@@ -10,12 +10,14 @@ import { useTranslation } from 'react-i18next';
 import { recommendationAPI, SEARCH_BASE } from '@/lib/api';
 import { toast } from 'sonner';
 import { MapView } from '@/components/MapView';
+import { useAuthStore } from '@/lib/store';
 
 interface PropertyCardProps {
   property: any;
   showAIReason?: boolean;
   onFeedback?: (feedback: 'like' | 'dislike') => void;
   showContactOwner?: boolean;
+  tenantPreferenceId?: number | null;
 }
 
 interface AIPoints {
@@ -30,8 +32,9 @@ interface AIPoints {
   matchReasons?: string[];
 }
 
-export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOwner }: PropertyCardProps) => {
+export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOwner, tenantPreferenceId }: PropertyCardProps) => {
   const { t } = useTranslation();
+  const { isAuthenticated, token } = useAuthStore();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState<'like' | 'dislike' | null>(null);
@@ -135,21 +138,65 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
 
   const handleSaveNote = async () => {
     if (!note || feedbackGiven) return;
+    
+    // Check authentication
+    if (!isAuthenticated || !token) {
+      toast.error('Please sign in to save feedback', {
+        description: 'You need to be authenticated to provide feedback on properties.',
+        action: {
+          label: 'Sign In',
+          onClick: () => window.location.href = 'https://rental-user-management-frontend-sigma.vercel.app/'
+        }
+      });
+      return;
+    }
+    
+    if (!tenantPreferenceId) {
+      toast.error('Cannot save feedback: Missing preference ID');
+      console.error('Missing tenant_preference_id for property:', property);
+      return;
+    }
+    
+    if (!property.id) {
+      toast.error('Cannot save feedback: Invalid property ID');
+      console.error('Missing property.id for property:', property);
+      return;
+    }
+    
     try {
+      console.log('Sending feedback:', {
+        tenant_preference_id: tenantPreferenceId,
+        property_id: property.id,
+        liked: false,
+        note,
+      });
       await recommendationAPI.sendFeedback({
-        tenant_preference_id: 0,
+        tenant_preference_id: tenantPreferenceId,
         property_id: property.id,
         liked: false,
         note,
       });
       toast.success('Feedback saved!');
-    } catch (e) {
+    } catch (e: any) {
       console.error('Save note error:', e);
+      console.error('Error response:', e?.response?.data);
       toast.error('Failed to save feedback');
     }
   };
 
   const handleFeedback = async (feedback: 'like' | 'dislike') => {
+    // Check authentication first
+    if (!isAuthenticated || !token) {
+      toast.error('Please sign in to submit feedback', {
+        description: 'You need to be authenticated to provide feedback on properties.',
+        action: {
+          label: 'Sign In',
+          onClick: () => window.location.href = 'https://rental-user-management-frontend-sigma.vercel.app/'
+        }
+      });
+      return;
+    }
+    
     try {
       if (onFeedback) {
         await onFeedback(feedback);
@@ -158,8 +205,27 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
         else setDislikes((v) => v + 1);
         toast.success('Feedback submitted!');
       } else {
+        if (!tenantPreferenceId) {
+          toast.error('Cannot submit feedback: Missing preference ID');
+          console.error('Missing tenant_preference_id for property:', property);
+          return;
+        }
+        
+        if (!property.id) {
+          toast.error('Cannot submit feedback: Invalid property ID');
+          console.error('Missing property.id for property:', property);
+          return;
+        }
+        
+        console.log('Sending feedback:', {
+          tenant_preference_id: tenantPreferenceId,
+          property_id: property.id,
+          liked: feedback === 'like',
+          note: note || undefined,
+        });
+        
         await recommendationAPI.sendFeedback({
-          tenant_preference_id: 0,
+          tenant_preference_id: tenantPreferenceId,
           property_id: property.id,
           liked: feedback === 'like',
           note: note || undefined,
@@ -169,9 +235,24 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
         else setDislikes((v) => v + 1);
         toast.success('Feedback submitted!');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Feedback error:', error);
-      toast.error('Failed to submit feedback');
+      console.error('Error response:', error?.response?.data);
+      console.error('Property data:', property);
+      
+      // Handle 401 specifically
+      if (error?.response?.status === 401) {
+        toast.error('Authentication expired', {
+          description: 'Please sign in again to continue.',
+          action: {
+            label: 'Sign In',
+            onClick: () => window.location.href = 'https://rental-user-management-frontend-sigma.vercel.app/'
+          }
+        });
+      } else {
+        const errorMsg = error?.response?.data?.message || error?.message || 'Failed to submit feedback';
+        toast.error(errorMsg);
+      }
     }
   };
 
@@ -664,10 +745,10 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
 
       {/* Enhanced Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-0">
+        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto p-0 gap-0">
           <div className="relative">
             {imageUrl && (
-              <div className="relative h-96 w-full">
+              <div className="relative h-[28rem] w-full overflow-hidden">
                 <img
                   src={imageUrl}
                   alt={property.title || t('property_card.property')}
@@ -678,135 +759,163 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
                     target.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1600&auto=format&fit=crop';
                   }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               </div>
             )}
             
-            <DialogHeader className="absolute top-6 left-6 right-6">
-              <DialogTitle className="text-3xl font-bold text-white drop-shadow-lg">
+            <DialogHeader className="absolute bottom-8 left-8 right-8">
+              <DialogTitle className="text-4xl font-bold text-white drop-shadow-2xl mb-2">
                 {property.title || t('property_card.property_details')}
               </DialogTitle>
-              <DialogDescription className="text-white/90 drop-shadow-lg text-lg">
+              <DialogDescription className="text-white/95 drop-shadow-lg text-xl flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
                 {property.location || 'Addis Ababa'}
               </DialogDescription>
             </DialogHeader>
           </div>
 
-          <div className="p-8 space-y-8">
+          <div className="p-10 space-y-10 bg-gradient-to-b from-background to-muted/20">
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="text-center p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
-                <DollarSign className="h-8 w-8 text-blue-600 dark:text-blue-400 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {property.price ? formatCurrency(Number(property.price)) : '15,000'}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-5"
+            >
+              <div className="group text-center p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/20 dark:to-blue-900/10 border-2 border-blue-200 dark:border-blue-800 hover:shadow-xl hover:scale-105 transition-all duration-300">
+                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-blue-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <DollarSign className="h-7 w-7 text-white" />
                 </div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">{t('property_card.monthly_rent')}</div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                  {property.price ? formatCurrency(Number(property.price)) : '15,000'} ETB
+                </div>
+                <div className="text-sm font-medium text-blue-700 dark:text-blue-400">{t('property_card.monthly_rent')}</div>
               </div>
               
-              <div className="text-center p-4 rounded-2xl bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800">
-                <Home className="h-8 w-8 text-green-600 dark:text-green-400 mx-auto mb-2" />
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">{property.house_type || t('property_card.house')}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">{t('property_card.property_type')}</div>
+              <div className="group text-center p-6 rounded-2xl bg-gradient-to-br from-green-50 to-green-100/50 dark:from-green-900/20 dark:to-green-900/10 border-2 border-green-200 dark:border-green-800 hover:shadow-xl hover:scale-105 transition-all duration-300">
+                <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-green-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Home className="h-7 w-7 text-white" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{property.house_type || t('property_card.house')}</div>
+                <div className="text-sm font-medium text-green-700 dark:text-green-400">{t('property_card.property_type')}</div>
               </div>
 
               {property.bedrooms && (
-                <div className="text-center p-4 rounded-2xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800">
-                  <Bed className="h-8 w-8 text-purple-600 dark:text-purple-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{property.bedrooms}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{t('property_card.bedrooms')}</div>
+                <div className="group text-center p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-900/10 border-2 border-purple-200 dark:border-purple-800 hover:shadow-xl hover:scale-105 transition-all duration-300">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-purple-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Bed className="h-7 w-7 text-white" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{property.bedrooms}</div>
+                  <div className="text-sm font-medium text-purple-700 dark:text-purple-400">{t('property_card.bedrooms')}</div>
                 </div>
               )}
 
               {property.distance && (
-                <div className="text-center p-4 rounded-2xl bg-orange-50 dark:bg-orange-900/20 border border-orange-100 dark:border-orange-800">
-                  <Navigation className="h-8 w-8 text-orange-600 dark:text-orange-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">{property.distance.toFixed(1)} km</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{t('property_card.distance')}</div>
+                <div className="group text-center p-6 rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-900/20 dark:to-orange-900/10 border-2 border-orange-200 dark:border-orange-800 hover:shadow-xl hover:scale-105 transition-all duration-300">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-orange-500 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Navigation className="h-7 w-7 text-white" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{property.distance.toFixed(1)} km</div>
+                  <div className="text-sm font-medium text-orange-700 dark:text-orange-400">{t('property_card.distance')}</div>
                 </div>
               )}
-            </div>
+            </motion.div>
 
             {/* Amenities */}
             {property.amenities && property.amenities.length > 0 && (
-              <div>
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('property_card.amenities_features')}</h3>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+              >
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="h-1 w-12 bg-gradient-to-r from-primary to-accent rounded-full"></div>
+                  <h3 className="text-3xl font-bold text-foreground">{t('property_card.amenities_features')}</h3>
+                </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {property.amenities.map((amenity: string, idx: number) => (
-                    <div key={idx} className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl hover:shadow-md transition-shadow">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                    <motion.div 
+                      key={idx}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.3, delay: idx * 0.05 }}
+                      className="flex items-center gap-3 p-4 bg-card border-2 border-border rounded-xl hover:shadow-lg hover:border-primary/50 hover:-translate-y-1 transition-all duration-300 group"
+                    >
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                         {getAmenityIcon(amenity)}
                       </div>
-                      <span className="font-medium text-gray-900 dark:text-white">{amenity}</span>
-                    </div>
+                      <span className="font-semibold text-foreground">{amenity}</span>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             )}
 
             {/* Map */}
-            <div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">{t('property_card.location')}</h3>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-1 w-12 bg-gradient-to-r from-primary to-accent rounded-full"></div>
+                <h3 className="text-3xl font-bold text-foreground">{t('property_card.location')}</h3>
+              </div>
               {hasValidCoordinates ? (
-                <MapView
-                  latitude={property.lat}
-                  longitude={property.lon}
-                  title={property.title || 'Property Location'}
-                  zoom={15}
-                  markerColor="#3B82F6"
-                  showFullscreenButton={true}
-                  className="h-96"
-                />
+                <div className="rounded-2xl overflow-hidden border-2 border-border shadow-xl">
+                  <MapView
+                    latitude={property.lat}
+                    longitude={property.lon}
+                    title={property.title || 'Property Location'}
+                    zoom={15}
+                    markerColor="#3B82F6"
+                    showFullscreenButton={true}
+                    className="h-[28rem]"
+                  />
+                </div>
               ) : (
-                <div className="w-full h-96 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-gradient-to-br from-muted/30 to-muted/10 flex flex-col items-center justify-center gap-4 p-8">
+                <div className="w-full h-96 rounded-2xl border-2 border-dashed border-border bg-gradient-to-br from-muted/50 to-muted/20 flex flex-col items-center justify-center gap-6 p-8">
                   <div className="relative">
-                    <MapPin className="h-16 w-16 text-muted-foreground/40" />
-                    <div className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-amber-500 flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">!</span>
+                    <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+                      <MapPin className="h-10 w-10 text-muted-foreground" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-amber-500 flex items-center justify-center shadow-lg animate-pulse">
+                      <span className="text-white text-sm font-bold">!</span>
                     </div>
                   </div>
-                  <div className="text-center space-y-3 max-w-md">
-                    <p className="font-semibold text-foreground text-lg">
+                  <div className="text-center space-y-4 max-w-md">
+                    <p className="font-bold text-foreground text-xl">
                       {property.location || t('property_card.location_info_available')}
                     </p>
 
                     <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground font-medium">
-                        📍 Map preview not available
+                      <p className="text-base text-muted-foreground font-semibold">
+                        📍 {t('property_card.maps_not_supported')}
                       </p>
-                      <p className="text-xs text-muted-foreground/80">
-                        Location coordinates are required to display the map
+                      <p className="text-sm text-muted-foreground">
+                        {t('property_card.upgrade_to_pro')}
                       </p>
                     </div>
                     {(property.lat && property.lon) ? (
-                      <div className="space-y-3">
-                        <p className="text-sm text-muted-foreground">
+                      <div className="space-y-3 pt-2">
+                        <p className="text-sm text-muted-foreground font-mono">
                           {t('property_card.coordinates')}: {property.lat.toFixed(6)}, {property.lon.toFixed(6)}
                         </p>
                         <Button
                           variant="default"
-                          size="sm"
+                          size="lg"
                           onClick={() => window.open(`https://www.google.com/maps?q=${property.lat},${property.lon}`, '_blank')}
-                          className="gap-2"
+                          className="gap-2 shadow-lg hover:shadow-xl"
                         >
-                          <MapPin className="h-4 w-4" />
+                          <MapPin className="h-5 w-5" />
                           {t('property_card.open_in_google_maps')}
                         </Button>
                       </div>
-                    ) : (
-                      <div className="space-y-2">
-                        <p className="text-sm text-muted-foreground font-medium">
-                          {t('property_card.maps_not_supported')}
-                        </p>
-                        <p className="text-xs text-muted-foreground/80">
-                          {t('property_card.upgrade_to_pro')}
-                        </p>
-                      </div>
-                    )}
-
+                    ) : null}
                   </div>
                 </div>
               )}
-            </div>
+            </motion.div>
           </div>
         </DialogContent>
       </Dialog>

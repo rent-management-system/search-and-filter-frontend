@@ -25,7 +25,6 @@ const Dashboard = () => {
     price_range: '',
     house_type: '',
     amenities: [] as string[],
-    max_distance_km: 20,
     sort_by: 'distance',
   });
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>('');
@@ -61,7 +60,6 @@ const Dashboard = () => {
         max_price,
         house_type: f.house_type || undefined,
         amenities: f.amenities.length ? f.amenities : undefined,
-        max_distance_km: f.max_distance_km,
         sort_by: f.sort_by,
       });
     },
@@ -381,34 +379,6 @@ const Dashboard = () => {
                           ))}
                         </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-3">Max Distance: <span className="text-primary font-bold">{filters.max_distance_km} km</span></label>
-                        <input
-                          type="range"
-                          min={1}
-                          max={30}
-                          step={1}
-                          value={filters.max_distance_km}
-                          onChange={(e) => {
-                            setFilters({ ...filters, max_distance_km: Number(e.target.value) });
-                          }}
-                          onMouseUp={(e) => {
-                            if (selectedPriceRange) {
-                              setSubmittedFilters({ ...filters, max_distance_km: Number((e.target as HTMLInputElement).value) });
-                            }
-                          }}
-                          onTouchEnd={(e) => {
-                            if (selectedPriceRange) {
-                              setSubmittedFilters({ ...filters, max_distance_km: Number((e.target as HTMLInputElement).value) });
-                            }
-                          }}
-                          className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
-                        />
-                        <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                          <span>1 km</span>
-                          <span>30 km</span>
-                        </div>
-                      </div>
                     </div>
 
                     {/* Info Message */}
@@ -443,7 +413,6 @@ const Dashboard = () => {
                                 max_price: range?.max,
                                 house_type: filters.house_type || undefined,
                                 amenities: filters.amenities,
-                                max_distance_km: filters.max_distance_km,
                               });
                               toast.success('Search preferences saved!');
                             } catch (e) {
