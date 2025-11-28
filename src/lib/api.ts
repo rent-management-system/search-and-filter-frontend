@@ -122,12 +122,12 @@ export const propertyAPI = {
   },
   
   saveSearch: async (payload: any) => {
-    const { data } = await searchApi.post('/v1/saved-searches', payload);
+    const { data } = await searchApi.post('/saved-searches', payload);
     return data;
   },
   
   getSavedSearches: async () => {
-    const { data } = await searchApi.get('/v1/saved-searches');
+    const { data } = await searchApi.get('/saved-searches');
     return Array.isArray(data) ? data : [];
   },
   health: async () => {
