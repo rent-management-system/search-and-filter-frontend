@@ -37,7 +37,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
   const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    job_school_location: '',
+    job_location: '',
     salary: '',
     house_type: '',
     family_size: '1',
@@ -76,7 +76,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
     });
   };
 
-  const canProceedStep1 = formData.job_school_location && formData.salary;
+  const canProceedStep1 = formData.job_location && formData.salary;
   const canProceedStep2 = formData.house_type && formData.family_size;
 
   return (
@@ -108,12 +108,12 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="job_school_location">{t('aiForm.jobLocation')}</Label>
+                <Label htmlFor="job_location">{t('aiForm.jobLocation')}</Label>
                 <Input
-                  id="job_school_location"
+                  id="job_location"
                   placeholder="e.g., Bole, Piassa, Merkato"
-                  value={formData.job_school_location}
-                  onChange={(e) => setFormData({ ...formData, job_school_location: e.target.value })}
+                  value={formData.job_location}
+                  onChange={(e) => setFormData({ ...formData, job_location: e.target.value })}
                 />
               </div>
 
