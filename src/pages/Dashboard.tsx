@@ -8,13 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { recommendationAPI, propertyAPI, HAS_PROPERTY_SEARCH } from '@/lib/api';
 import { PropertyCard } from '@/components/PropertyCard';
-import { Search, History, Sparkles, User, Mail, Phone, Shield, Globe2, Hash, Calendar, MapPin, TrendingUp, Home, Star, ChevronRight, DollarSign, Bed } from 'lucide-react';
+import { Search, History, Sparkles, User, Mail, Phone, Shield, Globe2, Hash, Calendar, MapPin, TrendingUp, Home, Star, ChevronRight, DollarSign, Bed, Archive, Trash2 } from 'lucide-react';
 import { decodeJwt } from '@/lib/jwt';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
 // Component to display saved property with full details
-const SavedPropertyCard = ({ searchData }: { searchData: any }) => {
+const SavedPropertyCard = ({ searchData, onDelete }: { searchData: any; onDelete: () => void }) => {
   const { data: propertyDetails, isLoading } = useQuery({
     queryKey: ['saved-property', searchData.property_id],
     queryFn: () => propertyAPI.getById(searchData.property_id),
@@ -50,8 +50,24 @@ const SavedPropertyCard = ({ searchData }: { searchData: any }) => {
     );
   }
 
-  // Use PropertyCard component with the fetched property details
-  return <PropertyCard property={propertyDetails} showContactOwner={true} />;
+  // Use PropertyCard component with the fetched property details wrapped with archive button
+  return (
+    <div className="relative group/saved">
+      <PropertyCard property={propertyDetails} showContactOwner={true} />
+      <Button
+        variant="destructive"
+        size="sm"
+        className="absolute top-3 right-3 opacity-0 group-hover/saved:opacity-100 transition-opacity shadow-lg z-10"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+      >
+        <Archive className="h-4 w-4 mr-1" />
+        Remove
+      </Button>
+    </div>
+  );
 };
 
 const Dashboard = () => {
@@ -143,6 +159,20 @@ const Dashboard = () => {
       });
     }
   }, [savedSearchesError]);
+
+  // Handle delete saved search
+  const handleDeleteSavedSearch = async (searchId: number) => {
+    try {
+      await propertyAPI.deleteSavedSearch(searchId);
+      toast.success('Saved search removed successfully');
+      refetchSavedSearches();
+    } catch (error: any) {
+      console.error('Failed to delete saved search:', error);
+      toast.error('Failed to remove saved search', {
+        description: error?.response?.data?.message || error?.message
+      });
+    }
+  };
 
   // Stats for dashboard
   const stats = useMemo(() => ({
@@ -604,7 +634,10 @@ const Dashboard = () => {
                         >
                           {savedSearches.filter((s: any) => s.property_id && s.property_id !== '00000000-0000-0000-0000-000000000000').map((search: any, idx: number) => (
                             <motion.div key={search.id || idx} variants={itemVariants}>
-                              <SavedPropertyCard searchData={search} />
+                              <SavedPropertyCard 
+                                searchData={search} 
+                                onDelete={() => handleDeleteSavedSearch(search.id)}
+                              />
                             </motion.div>
                           ))}
                         </motion.div>
@@ -624,8 +657,21 @@ const Dashboard = () => {
                           {savedSearches.filter((s: any) => !s.property_id || s.property_id === '00000000-0000-0000-0000-000000000000').map((search: any, idx: number) => {
                             const hasPropertyImage = search.photos && search.photos.length > 0;
                             return (
-                        <motion.div key={search.id || idx} variants={itemVariants}>
+                        <motion.div key={search.id || idx} variants={itemVariants} className="relative group/search">
                           <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 group overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+                            {/* Archive Button */}
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-3 right-3 opacity-0 group-hover/search:opacity-100 transition-opacity shadow-lg z-10"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                await handleDeleteSavedSearch(search.id);
+                              }}
+                            >
+                              <Archive className="h-4 w-4 mr-1" />
+                              Remove
+                            </Button>
                             {/* Property Image Header (if available) */}
                             {hasPropertyImage && (
                               <div className="relative h-48 overflow-hidden">

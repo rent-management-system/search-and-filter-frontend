@@ -136,6 +136,11 @@ export const propertyAPI = {
       return [];
     }
   },
+  
+  deleteSavedSearch: async (id: number) => {
+    const { data } = await searchApi.delete(`/saved-searches/${id}`);
+    return data;
+  },
   health: async () => {
     const { data } = await searchApi.get('/health');
     return data;
