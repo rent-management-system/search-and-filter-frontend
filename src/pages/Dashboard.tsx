@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { recommendationAPI, propertyAPI, HAS_PROPERTY_SEARCH } from '@/lib/api';
 import { PropertyCard } from '@/components/PropertyCard';
-import { Search, History, Sparkles, User, Mail, Phone, Shield, Globe2, Hash, Calendar, MapPin, TrendingUp, Home, Star, ChevronRight } from 'lucide-react';
+import { Search, History, Sparkles, User, Mail, Phone, Shield, Globe2, Hash, Calendar, MapPin, TrendingUp, Home, Star, ChevronRight, DollarSign, Bed } from 'lucide-react';
 import { decodeJwt } from '@/lib/jwt';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -424,17 +424,18 @@ const Dashboard = () => {
                           onClick={async () => {
                             try {
                               const range = priceRanges.find(r => r.value === selectedPriceRange);
-                              await propertyAPI.saveSearch({
+                              const payload: any = {
                                 location: 'Adama',
-                                min_price: range?.min || 0,
-                                max_price: range?.max || 999999,
+                                min_price: range?.min ?? 0,
+                                max_price: range?.max ?? 0,
                                 house_type: filters.house_type || 'apartment',
                                 amenities: filters.amenities.length > 0 ? filters.amenities : [],
-                                bedrooms: 0,
-                                max_distance_km: 10,
+                                bedrooms: 2,
+                                max_distance_km: 0,
                                 photos: [],
-                                property_id: '',
-                              });
+                                property_id: '00000000-0000-0000-0000-000000000000',
+                              };
+                              await propertyAPI.saveSearch(payload);
                               toast.success('Search preferences saved!');
                               refetchSavedSearches();
                             } catch (e) {
@@ -507,12 +508,16 @@ const Dashboard = () => {
             {/* Saved Searches Tab */}
             {HAS_PROPERTY_SEARCH && (
               <TabsContent value="saved" className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Saved Searches
-                  </h3>
-                  <Badge variant="secondary" className="text-sm">
-                    {savedSearches?.length || 0} saved searches
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 to-teal-700 dark:from-white dark:to-teal-300 bg-clip-text text-transparent">
+                      Saved Properties
+                    </h3>
+                    <p className="text-muted-foreground mt-1">Your bookmarked properties and search preferences</p>
+                  </div>
+                  <Badge variant="secondary" className="text-sm px-4 py-2">
+                    <Star className="h-3.5 w-3.5 mr-1.5" />
+                    {savedSearches?.length || 0} saved
                   </Badge>
                 </div>
 
@@ -534,108 +539,170 @@ const Dashboard = () => {
                   </div>
                 ) : savedSearches && savedSearches.length > 0 ? (
                   <motion.div 
-                    className="grid gap-4"
+                    className="grid md:grid-cols-2 gap-6"
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
                   >
-                    {savedSearches.map((search: any, idx: number) => (
-                      <motion.div key={search.id || idx} variants={itemVariants}>
-                        <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
-                          <CardContent className="p-6">
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-start gap-4 flex-1">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center flex-shrink-0">
-                                  <MapPin className="h-6 w-6 text-white" />
-                                </div>
-                                <div className="flex-1">
-                                  <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors text-lg">
-                                    {search.location || 'Location not specified'}
-                                  </h4>
-                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-sm">
-                                    <div>
-                                      <p className="text-gray-500 dark:text-gray-400 text-xs">Price Range</p>
-                                      <p className="font-medium text-gray-900 dark:text-white">
-                                        {search.min_price} - {search.max_price} ETB
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <p className="text-gray-500 dark:text-gray-400 text-xs">House Type</p>
-                                      <p className="font-medium text-gray-900 dark:text-white capitalize">
-                                        {search.house_type || 'Any'}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <p className="text-gray-500 dark:text-gray-400 text-xs">Bedrooms</p>
-                                      <p className="font-medium text-gray-900 dark:text-white">
-                                        {search.bedrooms || 'Any'}
-                                      </p>
-                                    </div>
-                                    <div>
-                                      <p className="text-gray-500 dark:text-gray-400 text-xs">Max Distance</p>
-                                      <p className="font-medium text-gray-900 dark:text-white">
-                                        {search.max_distance_km || 0} km
-                                      </p>
-                                    </div>
-                                  </div>
-                                  {search.amenities && search.amenities.length > 0 && (
-                                    <div className="mt-3">
-                                      <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">Amenities</p>
-                                      <div className="flex flex-wrap gap-1">
-                                        {search.amenities.map((amenity: string, i: number) => (
-                                          <Badge key={i} variant="outline" className="text-xs capitalize">
-                                            {amenity}
+                    {savedSearches.map((search: any, idx: number) => {
+                      const hasPropertyImage = search.photos && search.photos.length > 0;
+                      const isPropertySave = search.property_id && search.property_id !== '00000000-0000-0000-0000-000000000000';
+                      
+                      return (
+                        <motion.div key={search.id || idx} variants={itemVariants}>
+                          <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 group overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+                            {/* Property Image Header (if available) */}
+                            {hasPropertyImage && (
+                              <div className="relative h-48 overflow-hidden">
+                                <img 
+                                  src={search.photos[0]} 
+                                  alt={search.location}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                  onError={(e) => {
+                                    const target = e.currentTarget as HTMLImageElement;
+                                    target.style.display = 'none';
+                                  }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                                {isPropertySave && (
+                                  <Badge className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 shadow-lg">
+                                    <Home className="h-3 w-3 mr-1" />
+                                    Saved Property
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                            
+                            <CardContent className="p-6">
+                              <div className="space-y-4">
+                                {/* Header */}
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="flex items-start gap-3 flex-1">
+                                    {!hasPropertyImage && (
+                                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                                        {isPropertySave ? (
+                                          <Home className="h-7 w-7 text-white" />
+                                        ) : (
+                                          <MapPin className="h-7 w-7 text-white" />
+                                        )}
+                                      </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <h4 className="font-bold text-xl text-gray-900 dark:text-white group-hover:text-teal-600 transition-colors truncate">
+                                          {search.location || 'Property Search'}
+                                        </h4>
+                                        {!hasPropertyImage && isPropertySave && (
+                                          <Badge variant="outline" className="text-xs border-amber-400 text-amber-700 dark:text-amber-400">
+                                            Property
                                           </Badge>
-                                        ))}
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Calendar className="h-3.5 w-3.5" />
+                                        {new Date(search.created_at).toLocaleDateString('en-US', {
+                                          month: 'short',
+                                          day: 'numeric',
+                                          year: 'numeric'
+                                        })}
                                       </div>
                                     </div>
-                                  )}
-                                  <div className="flex items-center gap-2 mt-3 text-xs text-gray-500 dark:text-gray-400">
-                                    <Calendar className="h-3.5 w-3.5" />
-                                    Saved on {new Date(search.created_at).toLocaleDateString('en-US', {
-                                      year: 'numeric',
-                                      month: 'long',
-                                      day: 'numeric'
-                                    })}
                                   </div>
                                 </div>
+
+                                {/* Price Banner */}
+                                <div className="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-950 dark:to-emerald-950 border-l-4 border-teal-600 rounded-lg p-4">
+                                  <div className="flex items-center justify-between">
+                                    <div>
+                                      <p className="text-xs font-medium text-teal-700 dark:text-teal-300 mb-1">Price Range</p>
+                                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                                        {search.min_price === search.max_price 
+                                          ? `${new Intl.NumberFormat('en-ET').format(search.min_price)} ETB`
+                                          : `${new Intl.NumberFormat('en-ET').format(search.min_price)} - ${new Intl.NumberFormat('en-ET').format(search.max_price)} ETB`
+                                        }
+                                      </p>
+                                      <p className="text-xs text-muted-foreground mt-0.5">per month</p>
+                                    </div>
+                                    <DollarSign className="h-10 w-10 text-teal-600/30" />
+                                  </div>
+                                </div>
+
+                                {/* Details Grid */}
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div className="bg-muted/50 rounded-lg p-3 text-center hover:bg-muted transition-colors">
+                                    <Home className="h-5 w-5 text-teal-600 mx-auto mb-1.5" />
+                                    <p className="text-xs text-muted-foreground">Type</p>
+                                    <p className="font-semibold text-sm text-gray-900 dark:text-white capitalize">
+                                      {search.house_type || 'Any'}
+                                    </p>
+                                  </div>
+                                  <div className="bg-muted/50 rounded-lg p-3 text-center hover:bg-muted transition-colors">
+                                    <Bed className="h-5 w-5 text-teal-600 mx-auto mb-1.5" />
+                                    <p className="text-xs text-muted-foreground">Bedrooms</p>
+                                    <p className="font-semibold text-sm text-gray-900 dark:text-white">
+                                      {search.bedrooms || 'Any'}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Amenities */}
+                                {search.amenities && search.amenities.length > 0 && (
+                                  <div>
+                                    <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Amenities</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {search.amenities.slice(0, 4).map((amenity: string, i: number) => (
+                                        <Badge key={i} variant="secondary" className="text-xs capitalize bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 border-0">
+                                          <Star className="h-2.5 w-2.5 mr-1" />
+                                          {amenity}
+                                        </Badge>
+                                      ))}
+                                      {search.amenities.length > 4 && (
+                                        <Badge variant="outline" className="text-xs">
+                                          +{search.amenities.length - 4} more
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-2 pt-2">
+                                  <Button 
+                                    className="flex-1 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white shadow-lg group/btn"
+                                    onClick={() => {
+                                      const range = priceRanges.find(
+                                        r => r.min === search.min_price && r.max === search.max_price
+                                      );
+                                      if (range) {
+                                        setSelectedPriceRange(range.value);
+                                        setFilters({
+                                          price_range: range.value,
+                                          house_type: search.house_type || '',
+                                          amenities: search.amenities || [],
+                                          sort_by: 'distance',
+                                        });
+                                        setSubmittedFilters({
+                                          price_range: range.value,
+                                          house_type: search.house_type || '',
+                                          amenities: search.amenities || [],
+                                          sort_by: 'distance',
+                                        });
+                                      }
+                                      setActiveTab('browse');
+                                      toast.success('Search filters applied!');
+                                    }}
+                                  >
+                                    <Search className="h-4 w-4 mr-2" />
+                                    View Properties
+                                    <ChevronRight className="h-4 w-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
+                                  </Button>
+                                </div>
                               </div>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                className="gap-2 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20"
-                                onClick={() => {
-                                  // Apply this saved search to filters
-                                  const range = priceRanges.find(
-                                    r => r.min === search.min_price && r.max === search.max_price
-                                  );
-                                  if (range) {
-                                    setSelectedPriceRange(range.value);
-                                    setFilters({
-                                      price_range: range.value,
-                                      house_type: search.house_type || '',
-                                      amenities: search.amenities || [],
-                                      sort_by: 'distance',
-                                    });
-                                    setSubmittedFilters({
-                                      price_range: range.value,
-                                      house_type: search.house_type || '',
-                                      amenities: search.amenities || [],
-                                      sort_by: 'distance',
-                                    });
-                                  }
-                                  setActiveTab('browse');
-                                  toast.success('Search filters applied!');
-                                }}
-                              >
-                                Apply Search
-                                <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      );
+                    })}
                   </motion.div>
                 ) : (
                   <Card className="border-0 shadow-lg text-center py-16">

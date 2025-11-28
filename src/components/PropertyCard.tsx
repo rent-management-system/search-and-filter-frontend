@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { MapPin, Heart, ThumbsUp, ThumbsDown, Car, DollarSign, Home, Award, CheckCircle2, Star, Navigation, Bed, Bath, Ruler, Wifi, Car as CarIcon, Utensils, Phone, Mail, User } from 'lucide-react';
+import { MapPin, Heart, ThumbsUp, ThumbsDown, Car, DollarSign, Home, Award, CheckCircle2, Star, Navigation, Bed, Bath, Ruler, Wifi, Car as CarIcon, Utensils, Phone, Mail, User, Bookmark, BookmarkCheck } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Progress } from '@/components/ui/progress';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { recommendationAPI, SEARCH_BASE } from '@/lib/api';
+import { recommendationAPI, SEARCH_BASE, propertyAPI } from '@/lib/api';
 import { toast } from 'sonner';
 import { MapView } from '@/components/MapView';
 import { useAuthStore } from '@/lib/store';
@@ -41,6 +41,8 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
   const [note, setNote] = useState('');
   const [likes, setLikes] = useState<number>(property.like_count ?? 0);
   const [dislikes, setDislikes] = useState<number>(property.dislike_count ?? 0);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Check if property has valid coordinates for Gebeta Maps
   const hasValidCoordinates = useMemo(() => {
@@ -322,6 +324,51 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
     return <Star className="h-3 w-3" />;
   };
 
+  const handleSaveProperty = async () => {
+    if (!isAuthenticated || !token) {
+      toast.error('Please sign in to save properties', {
+        description: 'You need to be authenticated to save properties.',
+        action: {
+          label: 'Sign In',
+          onClick: () => window.location.href = 'https://rental-user-management-frontend-sigma.vercel.app/'
+        }
+      });
+      return;
+    }
+
+    if (!propertyId) {
+      toast.error('Cannot save property: Invalid property ID');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = {
+        location: property.location || 'Addis Ababa',
+        min_price: property.price ? Number(property.price) : 0,
+        max_price: property.price ? Number(property.price) : 0,
+        house_type: property.house_type || 'apartment',
+        amenities: property.amenities && Array.isArray(property.amenities) ? property.amenities : [],
+        bedrooms: property.bedrooms || 2,
+        max_distance_km: 0,
+        photos: property.images || property.photos || [],
+        property_id: propertyId,
+      };
+      
+      await propertyAPI.saveSearch(payload);
+      setIsSaved(true);
+      toast.success('Property saved successfully!', {
+        description: 'You can view your saved properties in the Dashboard.'
+      });
+    } catch (e: any) {
+      console.error('Save property failed', e);
+      const errorMsg = e?.response?.data?.message || 'Failed to save property';
+      toast.error(errorMsg);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <>
       <motion.div
@@ -354,24 +401,55 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             
             {/* Top badges */}
-            <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-2">
-              {/* House type badge */}
-              <Badge className="bg-white/95 backdrop-blur-sm text-gray-800 border-0 font-semibold shadow-lg">
-                {property.house_type || t('property_card.property')}
-              </Badge>
-
-              {/* Approved flag */}
-              {(property.approved || property.status === 'APPROVED') && (
-                <Badge className="bg-green-600 text-white border-0 shadow-lg flex items-center gap-1.5 font-semibold">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  {t('property_card.verified')}
+            <div className="absolute top-3 left-3 right-3 flex flex-wrap gap-2 justify-between items-start">
+              <div className="flex flex-wrap gap-2">
+                {/* House type badge */}
+                <Badge className="bg-white/95 backdrop-blur-sm text-gray-800 border-0 font-semibold shadow-lg">
+                  {property.house_type || t('property_card.property')}
                 </Badge>
-              )}
+
+                {/* Approved flag */}
+                {(property.approved || property.status === 'APPROVED') && (
+                  <Badge className="bg-green-600 text-white border-0 shadow-lg flex items-center gap-1.5 font-semibold">
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    {t('property_card.verified')}
+                  </Badge>
+                )}
+              </div>
+              
+              {/* Save/Bookmark Button */}
+              <Button
+                size="sm"
+                variant={isSaved ? "default" : "secondary"}
+                className={`shadow-lg ${
+                  isSaved 
+                    ? 'bg-primary hover:bg-primary/90 text-primary-foreground' 
+                    : 'bg-white/95 backdrop-blur-sm hover:bg-white text-gray-800'
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSaveProperty();
+                }}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Bookmark className="h-4 w-4" />
+                  </motion.div>
+                ) : isSaved ? (
+                  <BookmarkCheck className="h-4 w-4" />
+                ) : (
+                  <Bookmark className="h-4 w-4" />
+                )}
+              </Button>
             </div>
 
-            {/* Rank badge */}
+            {/* Rank badge - positioned below save button */}
             {property.rank && (
-              <div className="absolute top-3 right-3">
+              <div className="absolute top-14 right-3">
                 <div className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-bold shadow-2xl ${
                   property.rank === 1
                     ? 'bg-gradient-to-r from-yellow-400 to-amber-500 text-white'

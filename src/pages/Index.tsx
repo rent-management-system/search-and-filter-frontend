@@ -548,17 +548,18 @@ const Index = () => {
                         onClick={async () => {
                           try {
                             const range = priceRanges.find(r => r.value === selectedPriceRange);
-                            await propertyAPI.saveSearch({
+                            const payload: any = {
                               location: 'Adama',
-                              min_price: range?.min || 0,
-                              max_price: range?.max || 999999,
+                              min_price: range?.min ?? 0,
+                              max_price: range?.max ?? 0,
                               house_type: filters.house_type || 'apartment',
                               amenities: filters.amenities.length > 0 ? filters.amenities : [],
-                              bedrooms: 0,
-                              max_distance_km: 10,
+                              bedrooms: 2,
+                              max_distance_km: 0,
                               photos: [],
-                              property_id: '',
-                            });
+                              property_id: '00000000-0000-0000-0000-000000000000',
+                            };
+                            await propertyAPI.saveSearch(payload);
                             toast.success(t('index.search_preferences_saved'));
                           } catch (e) {
                             console.error('Save search failed', e);
