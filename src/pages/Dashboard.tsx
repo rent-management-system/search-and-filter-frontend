@@ -169,23 +169,11 @@ const Dashboard = () => {
     }
   }, [savedSearchesError]);
 
-  // Handle delete saved search with optimistic UI update
-  const handleDeleteSavedSearch = async (searchId: number) => {
-    // Immediately remove from UI
+  // Handle delete saved search - frontend only (mock unsave)
+  const handleDeleteSavedSearch = (searchId: number) => {
+    // Remove from UI only
     setSavedSearches(prev => prev.filter(search => search.id !== searchId));
-    toast.success('Saved search removed');
-    
-    // Call API in background
-    try {
-      await propertyAPI.deleteSavedSearch(searchId);
-    } catch (error: any) {
-      console.error('Failed to delete saved search:', error);
-      // On error, refetch to restore correct state
-      refetchSavedSearches();
-      toast.error('Failed to remove from server', {
-        description: 'The item was removed from view but may reappear on refresh'
-      });
-    }
+    toast.success('Property unsaved');
   };
 
   // Stats for dashboard
