@@ -28,8 +28,8 @@ export const Footer = () => {
                 </button>
               </li>
               <li>
-                <button onClick={() => scrollToSection('about')} className="hover:opacity-70 transition-opacity">
-                  {t('nav.about')}
+                <button onClick={() => scrollToSection('dashboard')} className="hover:opacity-70 transition-opacity">
+                  {t('nav.dashboard')}
                 </button>
               </li>
               <li>

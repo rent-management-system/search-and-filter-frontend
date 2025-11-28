@@ -74,10 +74,10 @@ export const Header: React.FC = () => {
           {t('nav.home')}
         </button>
         <button
-          onClick={() => window.location.href = 'https://rent-management-system-tau.vercel.app/#about'}
+          onClick={() => scrollToSection('dashboard')}
           className="text-md mr-2 text-[18px] transition-transform duration-200 hover:scale-105 hover:text-primary cursor-pointer"
         >
-          {t('nav.about')}
+          {t('nav.dashboard')}
         </button>
         <button
           onClick={() => scrollToSection('properties')}
@@ -258,15 +258,15 @@ export const Header: React.FC = () => {
                       >
                         {t('nav.home')}
                       </a>
-                    </li>                    <li className="li li2" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
-                      <a
-                        href="https://rent-management-system-tau.vercel.app/#about"
-                        onClick={() => { window.location.href = 'https://rent-management-system-tau.vercel.app/#about'; }}
-                        style={{ textDecoration: 'none', color: '#d8ccccfc', whiteSpace: 'normal', overflowWrap: 'break-word' }}
-                      >
-                        {t('nav.about')}
-                      </a>
-                    </li>          <li className="li li3" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
+                    </li><li className="li li2" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
+      <a
+        href="#dashboard"
+        onClick={(e) => { e.preventDefault(); scrollToSection('dashboard'); }}
+        style={{ textDecoration: 'none', color: '#d8ccccfc', whiteSpace: 'normal', overflowWrap: 'break-word' }}
+      >
+        {t('nav.dashboard')}
+      </a>
+    </li>          <li className="li li3" style={{ listStyle: 'none', fontSize: '24px', color: '#fff', lineHeight: '2.2', textTransform: 'uppercase', letterSpacing: '1.7px', cursor: 'pointer' }}>
             <a 
               href="#" 
               onClick={(e) => { e.preventDefault(); scrollToSection('properties'); }}
