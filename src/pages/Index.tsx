@@ -129,37 +129,68 @@ const Index = () => {
       };
       const result = await recommendationAPI.generate(payload);
       setTenantPrefId(result.tenant_preference_id ?? null);
-      // Adapt API response to PropertyCard expected shape
-      const adapted = (result.recommendations || []).map((r: any, idx: number) => {
-        // Extract property ID with multiple fallback options
-        const propertyId = r.property_id || r.id || r._id || r.propertyId || `temp-${Date.now()}-${idx}`;
-        console.log('Mapping recommendation:', { raw: r, propertyId });
-        
-        return {
-          id: propertyId,
-          title: r.title,
-          location: r.location,
-          price: r.price,
-          lat: r.lat || r.latitude,
-          lon: r.lon || r.longitude,
-          transport_cost: r.transport_cost,
-          affordability_score: r.affordability_score,
-          ai_reason: r.reason,
-          image_url: r.images?.[0] || r.image_url || r.photo || r.photos?.[0],
-          amenities: r.details?.amenities || r.amenities || [],
-          house_type: r.details?.house_type || r.house_type,
-          distance: r.route?.distance_km || r.distance,
-          bedrooms: r.details?.bedrooms || r.bedrooms,
-          bathrooms: r.details?.bathrooms || r.bathrooms,
-          area: r.details?.area || r.area,
-          // Owner contact information with comprehensive fallbacks
-          owner_contact: r.owner_contact || r.owner || r.contact,
-          owner_name: r.owner_name || r.owner?.name || r.contact?.name,
-          owner_phone: r.owner_phone || r.owner?.phone || r.contact?.phone || r.phone,
-          owner_email: r.owner_email || r.owner?.email || r.contact?.email,
-        };
-      });
-      setRecommendations(adapted);
+      
+      console.log('AI Recommendation API Response:', result);
+      
+      // Fetch full property details for each recommendation using the same API as "All Properties"
+      const enriched = await Promise.all(
+        (result.recommendations || []).map(async (r: any, idx: number) => {
+          const propertyId = r.property_id || r.id || r._id || r.propertyId;
+          
+          console.log('=== Processing Recommendation #' + (idx + 1) + ' ===');
+          console.log('Property ID:', propertyId);
+          
+          // Fetch full property details using the same API endpoint as "All Properties" tab
+          let fullProperty = null;
+          if (propertyId) {
+            try {
+              console.log('Fetching full property details from /property/' + propertyId);
+              fullProperty = await propertyAPI.getById(propertyId);
+              console.log('Full property data retrieved:', fullProperty);
+              console.log('Owner contact from full property:', {
+                owner_contact: fullProperty.owner_contact,
+                owner: fullProperty.owner,
+                contact: fullProperty.contact,
+                owner_name: fullProperty.owner_name,
+                owner_phone: fullProperty.owner_phone,
+                owner_email: fullProperty.owner_email,
+              });
+            } catch (error) {
+              console.error('Failed to fetch property details for ID:', propertyId, error);
+            }
+          }
+          
+          // Merge AI recommendation data with full property data
+          // Use full property data for owner contact, fall back to recommendation data
+          return {
+            id: propertyId || `temp-${Date.now()}-${idx}`,
+            title: r.title || fullProperty?.title,
+            location: r.location || fullProperty?.location,
+            price: r.price ?? fullProperty?.price,
+            lat: r.lat || r.latitude || fullProperty?.lat || fullProperty?.latitude,
+            lon: r.lon || r.longitude || fullProperty?.lon || fullProperty?.longitude,
+            transport_cost: r.transport_cost,
+            affordability_score: r.affordability_score,
+            ai_reason: r.reason,
+            image_url: r.images?.[0] || r.image_url || fullProperty?.images?.[0] || fullProperty?.image_url || r.photo || r.photos?.[0],
+            amenities: fullProperty?.amenities || r.details?.amenities || r.amenities || [],
+            house_type: fullProperty?.house_type || r.details?.house_type || r.house_type,
+            distance: r.route?.distance_km || r.distance,
+            bedrooms: fullProperty?.bedrooms || r.details?.bedrooms || r.bedrooms,
+            bathrooms: fullProperty?.bathrooms || r.details?.bathrooms || r.bathrooms,
+            area: fullProperty?.area || r.details?.area || r.area,
+            approved: fullProperty?.approved || fullProperty?.status === 'APPROVED',
+            // Owner contact - prioritize full property data from the API
+            owner_contact: fullProperty?.owner_contact || fullProperty?.owner || fullProperty?.contact || r.owner_contact || r.owner || r.contact,
+            owner_name: fullProperty?.owner_name || fullProperty?.owner?.name || fullProperty?.contact?.name || r.owner_name || r.owner?.name,
+            owner_phone: fullProperty?.owner_phone || fullProperty?.owner?.phone || fullProperty?.contact?.phone || fullProperty?.phone || r.owner_phone || r.phone,
+            owner_email: fullProperty?.owner_email || fullProperty?.owner?.email || fullProperty?.contact?.email || r.owner_email,
+          };
+        })
+      );
+      
+      console.log('Final enriched recommendations:', enriched);
+      setRecommendations(enriched);
       // Scroll to results
       setTimeout(() => {
         document.getElementById('properties')?.scrollIntoView({ behavior: 'smooth' });
