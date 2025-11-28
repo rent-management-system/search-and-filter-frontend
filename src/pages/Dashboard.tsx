@@ -84,12 +84,24 @@ const Dashboard = () => {
   });
 
   // Saved searches
-  const { data: savedSearches, isLoading: savedSearchesLoading, refetch: refetchSavedSearches } = useQuery({
+  const { data: savedSearches, isLoading: savedSearchesLoading, error: savedSearchesError, refetch: refetchSavedSearches } = useQuery<any[]>({
     queryKey: ['dashboard-saved-searches'],
     queryFn: propertyAPI.getSavedSearches,
     enabled: HAS_PROPERTY_SEARCH,
     staleTime: 30_000,
+    retry: 1,
   });
+
+  // Handle saved searches error
+  useEffect(() => {
+    if (savedSearchesError) {
+      console.error('Failed to load saved searches:', savedSearchesError);
+      const errorMsg = (savedSearchesError as any)?.response?.data?.message || (savedSearchesError as any)?.message || 'Failed to load saved searches';
+      toast.error('Could not load saved searches', {
+        description: errorMsg + '. This may be due to authentication or permission issues.'
+      });
+    }
+  }, [savedSearchesError]);
 
   // Stats for dashboard
   const stats = useMemo(() => ({
