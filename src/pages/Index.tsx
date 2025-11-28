@@ -12,7 +12,18 @@ import { recommendationAPI, propertyAPI, HAS_PROPERTY_SEARCH } from '@/lib/api';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/lib/store';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, Search, History, BookmarkCheck, Mail, Phone, MapPin, Home as HomeIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  ArrowRight,
+  Sparkles,
+  Search,
+  History,
+  BookmarkCheck,
+  Mail,
+  Phone,
+  MapPin,
+  Home as HomeIcon,
+} from 'lucide-react';
 import FrontPage from '@/components/FrontPage';
 import { Steps } from '@/components/Steps';
 
@@ -32,15 +43,15 @@ const Index = () => {
   });
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>('');
 
-  // Predefined price ranges
-  const priceRanges = [
-    { label: 'Under 3,000 ETB', value: '0-3000', min: 0, max: 3000 },
-    { label: '3,000 - 5,000 ETB', value: '3000-5000', min: 3000, max: 5000 },
-    { label: '5,000 - 8,000 ETB', value: '5000-8000', min: 5000, max: 8000 },
-    { label: '8,000 - 12,000 ETB', value: '8000-12000', min: 8000, max: 12000 },
-    { label: '12,000 - 20,000 ETB', value: '12000-20000', min: 12000, max: 20000 },
-    { label: '20,000+ ETB', value: '20000-999999', min: 20000, max: 999999 },
-  ];
+  const priceRanges = useMemo(() => [
+    { label: t('dashboard.price_ranges.under', { max: '3,000' }), value: '0-3000', min: 0, max: 3000 },
+    { label: t('dashboard.price_ranges.between', { min: '3,000', max: '5,000' }), value: '3000-5000', min: 3000, max: 5000 },
+    { label: t('dashboard.price_ranges.between', { min: '5,000', max: '8,000' }), value: '5000-8000', min: 5000, max: 8000 },
+    { label: t('dashboard.price_ranges.between', { min: '8,000', max: '12,000' }), value: '8000-12000', min: 8000, max: 12000 },
+    { label: t('dashboard.price_ranges.between', { min: '12,000', max: '20,000' }), value: '12000-20000', min: 12000, max: 20000 },
+    { label: t('dashboard.price_ranges.over', { min: '20,000' }), value: '20000-999999', min: 20000, max: 999999 },
+  ], [t]);
+
   // Only fetch when user explicitly submits via Search
   const [submittedFilters, setSubmittedFilters] = useState<typeof filters | null>(null);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
@@ -110,9 +121,15 @@ const Index = () => {
   const { data: recommendationsHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['my-recommendations'],
     queryFn: recommendationAPI.getMine,
-    // Disable auto-fetch on landing to prevent noisy errors if a backend rejects the token.
-    // Fetch can be triggered explicitly from the dashboard page instead.
-    enabled: false,
+    enabled: isAuthenticated,
+  });
+
+  // Saved searches
+  const { data: savedSearches, isLoading: savedSearchesLoading } = useQuery({
+    queryKey: ['dashboard-saved-searches'],
+    queryFn: propertyAPI.getSavedSearches,
+    enabled: isAuthenticated && HAS_PROPERTY_SEARCH,
+    staleTime: 30_000,
   });
 
   const handleGenerateRecommendations = async (formData: any) => {
@@ -600,77 +617,116 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Dashboard Section (only shown when authenticated) */}
-      {isAuthenticated && (
-        <section id="dashboard" className="py-20 bg-muted/30 scroll-mt-16">
-          <div className="container mx-auto px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="mb-8"
-            >
-              <h2 className="text-4xl font-bold mb-2">{t('nav.dashboard')}</h2>
-              <p className="text-lg text-muted-foreground">
-                {t('index.manage_your_searches')}
-              </p>
-            </motion.div>
+      {/* Dashboard Section */}
+      <section id="dashboard" className="py-20 bg-muted/30 scroll-mt-16">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-8"
+          >
+            <h2 className="text-4xl font-bold mb-2">{t('nav.dashboard')}</h2>
+            <p className="text-lg text-muted-foreground">
+              {t('index.manage_your_searches')}
+            </p>
+          </motion.div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Saved Searches */}
-              <Card className="shadow-premium">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BookmarkCheck className="h-5 w-5 text-primary" />
-                    {t('dashboard.savedSearches')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 text-muted-foreground">
-                    {t('dashboard.noData')}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Saved Searches */}
+            <Card className="shadow-premium">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <BookmarkCheck className="h-5 w-5 text-primary" />
+                  {t('dashboard.savedSearches')}
+                </CardTitle>
+                <Link to="/dashboard">
+                  <Button variant="ghost" size="sm">
+                    See More <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Link>
+              </CardHeader>
+              <CardContent>
+                {savedSearchesLoading && isAuthenticated ? (
+                  <div className="space-y-3">
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
                   </div>
-                </CardContent>
-              </Card>
+                ) : savedSearches && savedSearches.length > 0 ? (
+                  <div className="space-y-3">
+                    {savedSearches.slice(0, 3).map((search: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <p className="text-sm font-medium truncate">
+                          {search.location || `Search #${search.id}`}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(search.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <p className="text-sm font-medium">Apartment in Bole</p>
+                      <p className="text-xs text-muted-foreground">5,000 - 8,000 ETB</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-              {/* Recommendation History */}
-              <Card className="shadow-premium">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <History className="h-5 w-5 text-primary" />
-                    {t('dashboard.recommendationHistory')}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {historyLoading ? (
-                    <div className="space-y-3">
-                      <Skeleton className="h-16 w-full" />
-                      <Skeleton className="h-16 w-full" />
+            {/* Recommendation History */}
+            <Card className="shadow-premium">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <History className="h-5 w-5 text-primary" />
+                  {t('dashboard.recommendationHistory')}
+                </CardTitle>
+                <Link to="/dashboard">
+                  <Button variant="ghost" size="sm">
+                    See More <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Link>
+              </CardHeader>
+              <CardContent>
+                {historyLoading && isAuthenticated ? (
+                  <div className="space-y-3">
+                    <Skeleton className="h-16 w-full" />
+                    <Skeleton className="h-16 w-full" />
+                  </div>
+                ) : recommendationsHistory?.length > 0 ? (
+                  <div className="space-y-3">
+                    {recommendationsHistory.slice(0, 3).map((rec: any, idx: number) => (
+                      <div
+                        key={idx}
+                        className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <p className="text-sm font-medium">
+                          AI Recommendation #{rec.tenant_preference_id}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(rec.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <p className="text-sm font-medium">AI Recommendation #123</p>
+                      <p className="text-xs text-muted-foreground">Nov 28, 2025</p>
                     </div>
-                  ) : recommendationsHistory?.length > 0 ? (
-                    <div className="space-y-3">
-                      {recommendationsHistory.map((rec: any, idx: number) => (
-                        <div
-                          key={idx}
-                          className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                        >
-                          <p className="text-sm font-medium">Preference #{rec.tenant_preference_id}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(rec.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      {t('dashboard.noData')}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* About Section removed per request */}
 

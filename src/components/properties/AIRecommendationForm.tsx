@@ -31,6 +31,8 @@ const amenitiesOptions = [
   'Furnished',
 ];
 
+const houseTypes = ['apartment', 'house', 'villa', 'studio'];
+
 export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
   const { t } = useTranslation();
   const [step, setStep] = useState(1);
@@ -79,7 +81,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium">
-            Step {step} of {totalSteps}
+            {t('aiForm.step_of_total', { step, total: totalSteps })}
           </span>
           <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
         </div>
@@ -98,7 +100,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
           >
             <div>
               <h2 className="text-2xl md:text-3xl font-bold mb-2">{t('aiForm.step1')}</h2>
-              <p className="text-muted-foreground">Tell us about your work location and budget</p>
+              <p className="text-muted-foreground">{t('aiForm.step1_description')}</p>
             </div>
 
             <div className="space-y-4">
@@ -137,7 +139,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
           >
             <div>
               <h2 className="text-2xl md:text-3xl font-bold mb-2">{t('aiForm.step2')}</h2>
-              <p className="text-muted-foreground">Tell us about your housing preferences</p>
+              <p className="text-muted-foreground">{t('aiForm.step2_description')}</p>
             </div>
 
             <div className="space-y-4">
@@ -148,13 +150,14 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
                   onValueChange={(value) => setFormData({ ...formData, house_type: value })}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select house type" />
+                    <SelectValue placeholder={t('aiForm.placeholder_select_house_type')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="apartment">Apartment</SelectItem>
-                    <SelectItem value="house">House</SelectItem>
-                    <SelectItem value="villa">Villa</SelectItem>
-                    <SelectItem value="studio">Studio</SelectItem>
+                    {houseTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {t(`aiForm.houseType_options.${type}`)}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -171,7 +174,10 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
                   <SelectContent>
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
                       <SelectItem key={num} value={num.toString()}>
-                        {num} {num === 1 ? 'person' : 'people'}
+                        {num}{' '}
+                        {num === 1
+                          ? t('aiForm.family_size_options.person')
+                          : t('aiForm.family_size_options.people')}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -192,7 +198,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
           >
             <div>
               <h2 className="text-2xl md:text-3xl font-bold mb-2">{t('aiForm.step3')}</h2>
-              <p className="text-muted-foreground">Select your preferred amenities and language</p>
+              <p className="text-muted-foreground">{t('aiForm.step3_description')}</p>
             </div>
 
             <div className="space-y-4">
@@ -210,7 +216,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
                         htmlFor={amenity}
                         className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                       >
-                        {amenity}
+                        {t(`aiForm.amenities_options.${amenity}`)}
                       </label>
                     </div>
                   ))}
@@ -227,8 +233,8 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="am">አማርኛ (Amharic)</SelectItem>
+                    <SelectItem value="en">{t('english_option')}</SelectItem>
+                    <SelectItem value="am">{t('amharic_option')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

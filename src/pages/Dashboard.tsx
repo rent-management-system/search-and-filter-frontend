@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 
 // Component to display saved property with full details
 const SavedPropertyCard = ({ searchData, onDelete }: { searchData: any; onDelete: () => void }) => {
+  const { t } = useTranslation();
   const { data: propertyDetails, isLoading } = useQuery({
     queryKey: ['saved-property', searchData.property_id],
     queryFn: () => propertyAPI.getById(searchData.property_id),
@@ -42,8 +43,8 @@ const SavedPropertyCard = ({ searchData, onDelete }: { searchData: any; onDelete
         <CardContent className="p-6">
           <div className="text-center text-muted-foreground">
             <Home className="h-12 w-12 mx-auto mb-2 opacity-50" />
-            <p>Property details not available</p>
-            <p className="text-xs mt-1">Property ID: {searchData.property_id}</p>
+            <p>{t('dashboard.property_details_not_available')}</p>
+            <p className="text-xs mt-1">{t('dashboard.property_id', { id: searchData.property_id })}</p>
           </div>
         </CardContent>
       </Card>
@@ -64,7 +65,7 @@ const SavedPropertyCard = ({ searchData, onDelete }: { searchData: any; onDelete
         }}
       >
         <Archive className="h-4 w-4 mr-1" />
-        Remove
+        {t('dashboard.remove')}
       </Button>
     </div>
   );
@@ -86,15 +87,15 @@ const Dashboard = () => {
   });
   const [selectedPriceRange, setSelectedPriceRange] = useState<string>('');
 
-  // Predefined price ranges
-  const priceRanges = [
-    { label: 'Under 3,000 ETB', value: '0-3000', min: 0, max: 3000 },
-    { label: '3,000 - 5,000 ETB', value: '3000-5000', min: 3000, max: 5000 },
-    { label: '5,000 - 8,000 ETB', value: '5000-8000', min: 5000, max: 8000 },
-    { label: '8,000 - 12,000 ETB', value: '8000-12000', min: 8000, max: 12000 },
-    { label: '12,000 - 20,000 ETB', value: '12000-20000', min: 12000, max: 20000 },
-    { label: '20,000+ ETB', value: '20000-999999', min: 20000, max: 999999 },
-  ];
+  const priceRanges = useMemo(() => [
+    { label: t('dashboard.price_ranges.under', { max: '3,000' }), value: '0-3000', min: 0, max: 3000 },
+    { label: t('dashboard.price_ranges.between', { min: '3,000', max: '5,000' }), value: '3000-5000', min: 3000, max: 5000 },
+    { label: t('dashboard.price_ranges.between', { min: '5,000', max: '8,000' }), value: '5000-8000', min: 5000, max: 8000 },
+    { label: t('dashboard.price_ranges.between', { min: '8,000', max: '12,000' }), value: '8000-12000', min: 8000, max: 12000 },
+    { label: t('dashboard.price_ranges.between', { min: '12,000', max: '20,000' }), value: '12000-20000', min: 12000, max: 20000 },
+    { label: t('dashboard.price_ranges.over', { min: '20,000' }), value: '20000-999999', min: 20000, max: 999999 },
+  ], [t]);
+  
   // Only fetch when user explicitly submits via Search
   const [submittedFilters, setSubmittedFilters] = useState<typeof filters | null>(null);
 
@@ -218,7 +219,7 @@ const Dashboard = () => {
             <div>
 
               <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 to-blue-700 dark:from-white dark:to-blue-300 bg-clip-text text-transparent mb-3">
-                {t('dashboard') || 'Dashboard'}
+                {t('dashboard.title') || 'Dashboard'}
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
                 {t('dashboard.subtitle')}
@@ -229,29 +230,15 @@ const Dashboard = () => {
                 <User className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="font-semibold text-gray-900 dark:text-white">{jwt?.email?.split('@')[0] || 'User'}</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{jwt?.role || 'tenant'}</p>
+                <p className="font-semibold text-gray-900 dark:text-white">{jwt?.email?.split('@')[0] || t('dashboard.user')}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">{jwt?.role || t('dashboard.tenant')}</p>
               </div>
             </div>
           </div>
         </motion.div>
 
         {/* Stats Overview */}
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Available Properties</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stats.totalProperties}</p>
-                </div>
-                <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                  <Home className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -295,53 +282,53 @@ const Dashboard = () => {
                       <User className="h-8 w-8" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-lg">{jwt?.email?.split('@')[0] || 'User'}</h3>
+                      <h3 className="font-bold text-lg">{jwt?.email?.split('@')[0] || t('dashboard.user')}</h3>
                       <Badge className="bg-white/20 text-white border-0 mt-1 capitalize">
-                        {jwt?.role || 'tenant'}
+                        {jwt?.role || t('dashboard.tenant')}
                       </Badge>
                     </div>
                   </div>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4" />
-                      <span>Verified Account</span>
+                      <span>{t('dashboard.verified_account')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4" />
-                      <span>Member since {new Date().getFullYear()}</span>
+                      <span>{t('dashboard.member_since')} {new Date().getFullYear()}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Profile Details */}
                 <div className="lg:w-2/3 p-6">
-                  <h4 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">Profile Information</h4>
+                  <h4 className="font-semibold text-lg mb-4 text-gray-900 dark:text-white">{t('dashboard.profile_information')}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                         <Mail className="h-4 w-4" />
-                        Email Address
+                        {t('dashboard.email_address')}
                       </div>
                       <p className="font-medium text-gray-900 dark:text-white">{jwt?.email || '—'}</p>
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                         <Phone className="h-4 w-4" />
-                        Phone Number
+                        {t('dashboard.phone_number')}
                       </div>
-                      <p className="font-medium text-gray-900 dark:text-white">{jwt?.phone_number || 'Not provided'}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{jwt?.phone_number || t('dashboard.not_provided')}</p>
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                         <Globe2 className="h-4 w-4" />
-                        Preferred Language
+                        {t('dashboard.preferred_language')}
                       </div>
                       <p className="font-medium text-gray-900 dark:text-white uppercase">{jwt?.preferred_language || 'en'}</p>
                     </div>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                         <Hash className="h-4 w-4" />
-                        User ID
+                        {t('dashboard.user_id')}
                       </div>
                       <p className="font-mono text-sm text-gray-600 dark:text-gray-300">{jwt?.sub || '—'}</p>
                     </div>
@@ -393,7 +380,7 @@ const Dashboard = () => {
                   <CardContent className="pt-6">
                     {/* Price Range Selection */}
                     <div className="space-y-3">
-                      <label className="block text-sm font-medium">Select Your Budget Range</label>
+                      <label className="block text-sm font-medium">{t('dashboard.select_budget_range')}</label>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {priceRanges.map((range) => (
                           <button
@@ -412,7 +399,7 @@ const Dashboard = () => {
                             }`}
                           >
                             <div className="font-semibold text-foreground">{range.label}</div>
-                            <div className="text-xs text-muted-foreground mt-1">Monthly rent</div>
+                            <div className="text-xs text-muted-foreground mt-1">{t('dashboard.monthly_rent')}</div>
                           </button>
                         ))}
                       </div>
@@ -421,7 +408,7 @@ const Dashboard = () => {
                     <div className="grid md:grid-cols-2 gap-4 mt-6">
                       {/* House Type */}
                       <div>
-                        <label className="block text-sm font-medium mb-2">House Type</label>
+                        <label className="block text-sm font-medium mb-2">{t('dashboard.house_type')}</label>
                         <select
                           className="w-full h-11 rounded-lg border-2 bg-background px-4 font-medium"
                           value={filters.house_type}
@@ -431,16 +418,16 @@ const Dashboard = () => {
                             if (selectedPriceRange) setSubmittedFilters(newFilters);
                           }}
                         >
-                          <option value="">Any Type</option>
-                          <option value="apartment">Apartment</option>
-                          <option value="house">House</option>
-                          <option value="villa">Villa</option>
-                          <option value="studio">Studio</option>
+                          <option value="">{t('dashboard.any_type')}</option>
+                          <option value="apartment">{t('dashboard.apartment')}</option>
+                          <option value="house">{t('dashboard.house')}</option>
+                          <option value="villa">{t('dashboard.villa')}</option>
+                          <option value="studio">{t('dashboard.studio')}</option>
                         </select>
                       </div>
                       {/* Sort By */}
                       <div>
-                        <label className="block text-sm font-medium mb-2">Sort By</label>
+                        <label className="block text-sm font-medium mb-2">{t('dashboard.sort_by')}</label>
                         <select
                           className="w-full h-11 rounded-lg border-2 bg-background px-4 font-medium"
                           value={filters.sort_by}
@@ -450,8 +437,8 @@ const Dashboard = () => {
                             if (selectedPriceRange) setSubmittedFilters(newFilters);
                           }}
                         >
-                          <option value="distance">Distance</option>
-                          <option value="price">Price</option>
+                          <option value="distance">{t('dashboard.distance')}</option>
+                          <option value="price">{t('dashboard.price')}</option>
                         </select>
                       </div>
                     </div>
@@ -459,7 +446,7 @@ const Dashboard = () => {
                     {/* Amenities + Distance */}
                     <div className="grid md:grid-cols-2 gap-6 mt-6">
                       <div>
-                        <label className="block text-sm font-medium mb-3">Amenities</label>
+                        <label className="block text-sm font-medium mb-3">{t('dashboard.amenities')}</label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                           {['wifi','parking','security','water','balcony','garden'].map((a) => (
                             <label key={a} className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
@@ -476,7 +463,7 @@ const Dashboard = () => {
                                   if (selectedPriceRange) setSubmittedFilters(newFilters);
                                 }}
                               />
-                              <span className="capitalize font-medium">{a}</span>
+                              <span className="capitalize font-medium">{t(`dashboard.amenities_options.${a}`)}</span>
                             </label>
                           ))}
                         </div>
@@ -487,7 +474,7 @@ const Dashboard = () => {
                     {!selectedPriceRange && (
                       <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                         <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
-                          👆 Select a price range above to start browsing properties
+                          {t('dashboard.select_price_range_prompt')}
                         </p>
                       </div>
                     )}
@@ -499,8 +486,8 @@ const Dashboard = () => {
                             <Search className="h-5 w-5 text-white" />
                           </div>
                           <div>
-                            <p className="font-semibold text-green-800 dark:text-green-200">Searching properties...</p>
-                            <p className="text-sm text-green-600 dark:text-green-300">Results update automatically as you adjust filters</p>
+                            <p className="font-semibold text-green-800 dark:text-green-200">{t('dashboard.searching_properties')}</p>
+                            <p className="text-sm text-green-600 dark:text-green-300">{t('dashboard.results_update_automatically')}</p>
                           </div>
                         </div>
                         <Button
@@ -521,15 +508,15 @@ const Dashboard = () => {
                                 property_id: '00000000-0000-0000-0000-000000000000',
                               };
                               await propertyAPI.saveSearch(payload);
-                              toast.success('Search preferences saved!');
+                              toast.success(t('dashboard.search_saved'));
                               refetchSavedSearches();
                             } catch (e) {
                               console.error('Save search failed', e);
-                              toast.error('Failed to save search');
+                              toast.error(t('dashboard.failed_to_save_search'));
                             }
                           }}
                         >
-                          Save Search
+                          {t('dashboard.save_search')}
                         </Button>
                       </div>
                     )}
@@ -537,10 +524,10 @@ const Dashboard = () => {
                 </Card>
                 <div className="flex items-center justify-between">
                   <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                    Available Properties
+                    {t('dashboard.available_properties')}
                   </h3>
                   <Badge variant="secondary" className="text-sm">
-                    {properties?.results?.length || 0} properties found
+                    {t('dashboard.properties_found', { count: properties?.results?.length || 0 })}
                   </Badge>
                 </div>
 
@@ -579,10 +566,10 @@ const Dashboard = () => {
                         <Home className="h-8 w-8 text-gray-400" />
                       </div>
                       <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                        No Properties Available
+                        {t('dashboard.no_properties_available')}
                       </h4>
                       <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
-                        There are currently no properties available. Check back later for new listings.
+                        {t('dashboard.no_properties_description')}
                       </p>
                     </CardContent>
                   </Card>
@@ -596,13 +583,13 @@ const Dashboard = () => {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-gray-900 to-teal-700 dark:from-white dark:to-teal-300 bg-clip-text text-transparent">
-                      Saved Properties
+                      {t('dashboard.saved_properties_title')}
                     </h3>
-                    <p className="text-muted-foreground mt-1">Your bookmarked properties and search preferences</p>
+                    <p className="text-muted-foreground mt-1">{t('dashboard.saved_properties_description')}</p>
                   </div>
                   <Badge variant="secondary" className="text-sm px-4 py-2">
                     <Star className="h-3.5 w-3.5 mr-1.5" />
-                    {savedSearches?.length || 0} saved
+                    {t('dashboard.saved_count', { count: savedSearches?.length || 0 })}
                   </Badge>
                 </div>
 
@@ -627,7 +614,7 @@ const Dashboard = () => {
                     {/* Saved Properties - Full Property Cards */}
                     {savedSearches.filter((s: any) => s.property_id && s.property_id !== '00000000-0000-0000-0000-000000000000').length > 0 && (
                       <div>
-                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Saved Properties</h4>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('dashboard.saved_properties_section_title')}</h4>
                         <motion.div 
                           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                           variants={containerVariants}
@@ -649,7 +636,7 @@ const Dashboard = () => {
                     {/* Saved Search Criteria */}
                     {savedSearches.filter((s: any) => !s.property_id || s.property_id === '00000000-0000-0000-0000-000000000000').length > 0 && (
                       <div>
-                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Search Criteria</h4>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t('dashboard.search_criteria')}</h4>
                         <motion.div 
                           className="grid md:grid-cols-2 gap-6"
                           variants={containerVariants}
@@ -658,6 +645,7 @@ const Dashboard = () => {
                         >
                           {savedSearches.filter((s: any) => !s.property_id || s.property_id === '00000000-0000-0000-0000-000000000000').map((search: any, idx: number) => {
                             const hasPropertyImage = search.photos && search.photos.length > 0;
+                            const isPropertySave = !!search.property_id && search.property_id !== '00000000-0000-0000-0000-000000000000';
                             return (
                         <motion.div key={search.id || idx} variants={itemVariants} className="relative group/search">
                           <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 group overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
@@ -672,7 +660,7 @@ const Dashboard = () => {
                               }}
                             >
                               <Archive className="h-4 w-4 mr-1" />
-                              Remove
+                              {t('dashboard.remove')}
                             </Button>
                             {/* Property Image Header (if available) */}
                             {hasPropertyImage && (
@@ -690,7 +678,7 @@ const Dashboard = () => {
                                 {isPropertySave && (
                                   <Badge className="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 shadow-lg">
                                     <Home className="h-3 w-3 mr-1" />
-                                    Saved Property
+                                    {t('dashboard.property')}
                                   </Badge>
                                 )}
                               </div>
@@ -713,11 +701,11 @@ const Dashboard = () => {
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center gap-2 mb-1">
                                         <h4 className="font-bold text-xl text-gray-900 dark:text-white group-hover:text-teal-600 transition-colors truncate">
-                                          {search.location || 'Property Search'}
+                                          {search.location || t('dashboard.property_search')}
                                         </h4>
                                         {!hasPropertyImage && isPropertySave && (
                                           <Badge variant="outline" className="text-xs border-amber-400 text-amber-700 dark:text-amber-400">
-                                            Property
+                                            {t('dashboard.property')}
                                           </Badge>
                                         )}
                                       </div>
@@ -737,14 +725,14 @@ const Dashboard = () => {
                                 <div className="bg-gradient-to-r from-teal-50 to-emerald-50 dark:from-teal-950 dark:to-emerald-950 border-l-4 border-teal-600 rounded-lg p-4">
                                   <div className="flex items-center justify-between">
                                     <div>
-                                      <p className="text-xs font-medium text-teal-700 dark:text-teal-300 mb-1">Price Range</p>
+                                      <p className="text-xs font-medium text-teal-700 dark:text-teal-300 mb-1">{t('dashboard.price_range')}</p>
                                       <p className="text-2xl font-bold text-gray-900 dark:text-white">
                                         {search.min_price === search.max_price 
                                           ? `${new Intl.NumberFormat('en-ET').format(search.min_price)} ETB`
                                           : `${new Intl.NumberFormat('en-ET').format(search.min_price)} - ${new Intl.NumberFormat('en-ET').format(search.max_price)} ETB`
                                         }
                                       </p>
-                                      <p className="text-xs text-muted-foreground mt-0.5">per month</p>
+                                      <p className="text-xs text-muted-foreground mt-0.5">{t('dashboard.per_month')}</p>
                                     </div>
                                     <DollarSign className="h-10 w-10 text-teal-600/30" />
                                   </div>
@@ -754,16 +742,16 @@ const Dashboard = () => {
                                 <div className="grid grid-cols-2 gap-3">
                                   <div className="bg-muted/50 rounded-lg p-3 text-center hover:bg-muted transition-colors">
                                     <Home className="h-5 w-5 text-teal-600 mx-auto mb-1.5" />
-                                    <p className="text-xs text-muted-foreground">Type</p>
+                                    <p className="text-xs text-muted-foreground">{t('dashboard.type')}</p>
                                     <p className="font-semibold text-sm text-gray-900 dark:text-white capitalize">
-                                      {search.house_type || 'Any'}
+                                      {search.house_type || t('dashboard.any')}
                                     </p>
                                   </div>
                                   <div className="bg-muted/50 rounded-lg p-3 text-center hover:bg-muted transition-colors">
                                     <Bed className="h-5 w-5 text-teal-600 mx-auto mb-1.5" />
-                                    <p className="text-xs text-muted-foreground">Bedrooms</p>
+                                    <p className="text-xs text-muted-foreground">{t('dashboard.bedrooms')}</p>
                                     <p className="font-semibold text-sm text-gray-900 dark:text-white">
-                                      {search.bedrooms || 'Any'}
+                                      {search.bedrooms || t('dashboard.any')}
                                     </p>
                                   </div>
                                 </div>
@@ -771,17 +759,17 @@ const Dashboard = () => {
                                 {/* Amenities */}
                                 {search.amenities && search.amenities.length > 0 && (
                                   <div>
-                                    <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Amenities</p>
+                                    <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">{t('dashboard.amenities')}</p>
                                     <div className="flex flex-wrap gap-1.5">
                                       {search.amenities.slice(0, 4).map((amenity: string, i: number) => (
                                         <Badge key={i} variant="secondary" className="text-xs capitalize bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 border-0">
                                           <Star className="h-2.5 w-2.5 mr-1" />
-                                          {amenity}
+                                          {t(`dashboard.amenities_options.${amenity}`)}
                                         </Badge>
                                       ))}
                                       {search.amenities.length > 4 && (
                                         <Badge variant="outline" className="text-xs">
-                                          +{search.amenities.length - 4} more
+                                          {t('dashboard.more_count', { count: search.amenities.length - 4 })}
                                         </Badge>
                                       )}
                                     </div>
@@ -812,11 +800,11 @@ const Dashboard = () => {
                                         });
                                       }
                                       setActiveTab('browse');
-                                      toast.success('Search filters applied!');
+                                      toast.success(t('dashboard.search_filters_applied'));
                                     }}
                                   >
                                     <Search className="h-4 w-4 mr-2" />
-                                    View Properties
+                                    {t('dashboard.view_properties')}
                                     <ChevronRight className="h-4 w-4 ml-1 group-hover/btn:translate-x-1 transition-transform" />
                                   </Button>
                                 </div>
@@ -836,17 +824,17 @@ const Dashboard = () => {
                         <Star className="h-10 w-10 text-teal-600 dark:text-teal-400" />
                       </div>
                       <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        No Saved Searches Yet
+                        {t('dashboard.no_saved_searches_title')}
                       </h4>
                       <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto mb-6">
-                        Save your property searches to quickly access them later. Start browsing properties and save your favorite search criteria.
+                        {t('dashboard.no_saved_searches_description')}
                       </p>
                       <Button 
                         className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
                         onClick={() => setActiveTab('browse')}
                       >
                         <Search className="h-4 w-4 mr-2" />
-                        Start Browsing Properties
+                        {t('dashboard.start_browsing_properties')}
                       </Button>
                     </CardContent>
                   </Card>
@@ -925,14 +913,14 @@ const Dashboard = () => {
                               </div>
                               <div className="flex-1">
                                 <p className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {property.title || `Property ${propertyIdx + 1}`}
+                                  {property.title || t('dashboard.property_n', { n: propertyIdx + 1 })}
                                 </p>
                                 <p className="text-xs text-gray-600 dark:text-gray-300">
-                                  {property.location || 'Location not specified'}
+                                  {property.location || t('dashboard.location_not_specified')}
                                 </p>
                               </div>
                               <Badge variant="secondary" className="text-xs">
-                                {property.price ? `${property.price} ETB` : 'Price not set'}
+                                {property.price ? `${property.price} ETB` : t('dashboard.price_not_set')}
                               </Badge>
                             </div>
                           ))}
@@ -948,50 +936,20 @@ const Dashboard = () => {
                       <Sparkles className="h-10 w-10 text-purple-600 dark:text-purple-400" />
                     </div>
                     <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                      No Recommendations Yet
+                      {t('dashboard.no_recommendations_yet')}
                     </h4>
                     <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto mb-6">
-                      Start by creating your first property preference to get AI-powered recommendations tailored to your needs.
+                      {t('dashboard.no_recommendations_description')}
                     </p>
                     <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
                       <Sparkles className="h-4 w-4 mr-2" />
-                      Get Your First Recommendation
+                      {t('dashboard.get_first_recommendation')}
                     </Button>
                   </CardContent>
                 </Card>
               )}
             </TabsContent>
           </Tabs>
-        </motion.div>
-
-        {/* Service Status (Non-AI backend visibility) */}
-        <motion.div variants={itemVariants} className="mt-8">
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-lg font-semibold">Service Status</h4>
-                <Button
-                  variant="outline"
-                  onClick={async () => {
-                    try {
-                      const data = await propertyAPI.health();
-                      toast.success(`Search service: ${data?.status || 'ok'}`);
-                    } catch (e) {
-                      toast.error('Search service unreachable');
-                    }
-                  }}
-                >
-                  Check Health
-                </Button>
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                <p>• GET <code>/api/v1/search</code> — Browse approved properties (Adama-only)</p>
-                <p>• GET <code>/api/v1/property/{'{id}'}</code> — View a single property</p>
-                <p>• POST <code>/api/v1/saved-searches</code> — Save your manual search</p>
-                <p>• GET <code>/api/v1/map/preview</code> — Interactive map preview (no auth)</p>
-              </div>
-            </CardContent>
-          </Card>
         </motion.div>
       </div>
     </motion.div>
