@@ -137,7 +137,7 @@ const Index = () => {
     try {
       // Map UI form fields to API schema
       const payload = {
-        job_school_location: formData.job_location,
+        job_school_location: formData.job_school_location,
         salary: Number(formData.salary),
         house_type: formData.house_type,
         family_size: Number(formData.family_size),
