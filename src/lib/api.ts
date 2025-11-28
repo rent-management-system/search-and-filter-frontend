@@ -125,6 +125,11 @@ export const propertyAPI = {
     const { data } = await searchApi.post('/v1/saved-searches', payload);
     return data;
   },
+  
+  getSavedSearches: async () => {
+    const { data } = await searchApi.get('/v1/saved-searches');
+    return Array.isArray(data) ? data : [];
+  },
   health: async () => {
     const { data } = await searchApi.get('/health');
     return data;

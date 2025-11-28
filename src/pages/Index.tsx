@@ -550,10 +550,14 @@ const Index = () => {
                             const range = priceRanges.find(r => r.value === selectedPriceRange);
                             await propertyAPI.saveSearch({
                               location: 'Adama',
-                              min_price: range?.min,
-                              max_price: range?.max,
-                              house_type: filters.house_type || undefined,
-                              amenities: filters.amenities,
+                              min_price: range?.min || 0,
+                              max_price: range?.max || 999999,
+                              house_type: filters.house_type || 'apartment',
+                              amenities: filters.amenities.length > 0 ? filters.amenities : [],
+                              bedrooms: 0,
+                              max_distance_km: 10,
+                              photos: [],
+                              property_id: '',
                             });
                             toast.success(t('index.search_preferences_saved'));
                           } catch (e) {

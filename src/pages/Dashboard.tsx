@@ -83,6 +83,14 @@ const Dashboard = () => {
     queryFn: recommendationAPI.getMine,
   });
 
+  // Saved searches
+  const { data: savedSearches, isLoading: savedSearchesLoading, refetch: refetchSavedSearches } = useQuery({
+    queryKey: ['dashboard-saved-searches'],
+    queryFn: propertyAPI.getSavedSearches,
+    enabled: HAS_PROPERTY_SEARCH,
+    staleTime: 30_000,
+  });
+
   // Stats for dashboard
   const stats = useMemo(() => ({
     totalProperties: properties?.results?.length || 0,
@@ -262,8 +270,8 @@ const Dashboard = () => {
         {/* Main Content Tabs */}
         <motion.div variants={itemVariants}>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className={`grid w-full max-w-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg ${
-              HAS_PROPERTY_SEARCH ? 'grid-cols-2' : 'grid-cols-1'
+            <TabsList className={`grid w-full max-w-3xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg ${
+              HAS_PROPERTY_SEARCH ? 'grid-cols-3' : 'grid-cols-1'
             }`}>
               {HAS_PROPERTY_SEARCH && (
                 <TabsTrigger 
@@ -272,6 +280,15 @@ const Dashboard = () => {
                 >
                   <Search className="h-4 w-4" />
                   {t('properties.browseAll') || 'Browse Properties'}
+                </TabsTrigger>
+              )}
+              {HAS_PROPERTY_SEARCH && (
+                <TabsTrigger 
+                  value="saved" 
+                  className="gap-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
+                >
+                  <Star className="h-4 w-4" />
+                  {t('dashboard.savedSearches') || 'Saved Searches'}
                 </TabsTrigger>
               )}
               <TabsTrigger 
@@ -409,12 +426,17 @@ const Dashboard = () => {
                               const range = priceRanges.find(r => r.value === selectedPriceRange);
                               await propertyAPI.saveSearch({
                                 location: 'Adama',
-                                min_price: range?.min,
-                                max_price: range?.max,
-                                house_type: filters.house_type || undefined,
-                                amenities: filters.amenities,
+                                min_price: range?.min || 0,
+                                max_price: range?.max || 999999,
+                                house_type: filters.house_type || 'apartment',
+                                amenities: filters.amenities.length > 0 ? filters.amenities : [],
+                                bedrooms: 0,
+                                max_distance_km: 10,
+                                photos: [],
+                                property_id: '',
                               });
                               toast.success('Search preferences saved!');
+                              refetchSavedSearches();
                             } catch (e) {
                               console.error('Save search failed', e);
                               toast.error('Failed to save search');
@@ -476,6 +498,164 @@ const Dashboard = () => {
                       <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto">
                         There are currently no properties available. Check back later for new listings.
                       </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+            )}
+
+            {/* Saved Searches Tab */}
+            {HAS_PROPERTY_SEARCH && (
+              <TabsContent value="saved" className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    Saved Searches
+                  </h3>
+                  <Badge variant="secondary" className="text-sm">
+                    {savedSearches?.length || 0} saved searches
+                  </Badge>
+                </div>
+
+                {savedSearchesLoading ? (
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <Card key={i} className="border-0 shadow-lg">
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
+                            <div className="space-y-2 flex-1">
+                              <Skeleton className="h-4 w-32" />
+                              <Skeleton className="h-3 w-48" />
+                            </div>
+                            <Skeleton className="h-10 w-20" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                ) : savedSearches && savedSearches.length > 0 ? (
+                  <motion.div 
+                    className="grid gap-4"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {savedSearches.map((search: any, idx: number) => (
+                      <motion.div key={search.id || idx} variants={itemVariants}>
+                        <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 group">
+                          <CardContent className="p-6">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start gap-4 flex-1">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center flex-shrink-0">
+                                  <MapPin className="h-6 w-6 text-white" />
+                                </div>
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors text-lg">
+                                    {search.location || 'Location not specified'}
+                                  </h4>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3 text-sm">
+                                    <div>
+                                      <p className="text-gray-500 dark:text-gray-400 text-xs">Price Range</p>
+                                      <p className="font-medium text-gray-900 dark:text-white">
+                                        {search.min_price} - {search.max_price} ETB
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-500 dark:text-gray-400 text-xs">House Type</p>
+                                      <p className="font-medium text-gray-900 dark:text-white capitalize">
+                                        {search.house_type || 'Any'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-500 dark:text-gray-400 text-xs">Bedrooms</p>
+                                      <p className="font-medium text-gray-900 dark:text-white">
+                                        {search.bedrooms || 'Any'}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <p className="text-gray-500 dark:text-gray-400 text-xs">Max Distance</p>
+                                      <p className="font-medium text-gray-900 dark:text-white">
+                                        {search.max_distance_km || 0} km
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {search.amenities && search.amenities.length > 0 && (
+                                    <div className="mt-3">
+                                      <p className="text-gray-500 dark:text-gray-400 text-xs mb-1">Amenities</p>
+                                      <div className="flex flex-wrap gap-1">
+                                        {search.amenities.map((amenity: string, i: number) => (
+                                          <Badge key={i} variant="outline" className="text-xs capitalize">
+                                            {amenity}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                  <div className="flex items-center gap-2 mt-3 text-xs text-gray-500 dark:text-gray-400">
+                                    <Calendar className="h-3.5 w-3.5" />
+                                    Saved on {new Date(search.created_at).toLocaleDateString('en-US', {
+                                      year: 'numeric',
+                                      month: 'long',
+                                      day: 'numeric'
+                                    })}
+                                  </div>
+                                </div>
+                              </div>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                className="gap-2 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20"
+                                onClick={() => {
+                                  // Apply this saved search to filters
+                                  const range = priceRanges.find(
+                                    r => r.min === search.min_price && r.max === search.max_price
+                                  );
+                                  if (range) {
+                                    setSelectedPriceRange(range.value);
+                                    setFilters({
+                                      price_range: range.value,
+                                      house_type: search.house_type || '',
+                                      amenities: search.amenities || [],
+                                      sort_by: 'distance',
+                                    });
+                                    setSubmittedFilters({
+                                      price_range: range.value,
+                                      house_type: search.house_type || '',
+                                      amenities: search.amenities || [],
+                                      sort_by: 'distance',
+                                    });
+                                  }
+                                  setActiveTab('browse');
+                                  toast.success('Search filters applied!');
+                                }}
+                              >
+                                Apply Search
+                                <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                ) : (
+                  <Card className="border-0 shadow-lg text-center py-16">
+                    <CardContent>
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-teal-100 dark:bg-teal-900 flex items-center justify-center">
+                        <Star className="h-10 w-10 text-teal-600 dark:text-teal-400" />
+                      </div>
+                      <h4 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+                        No Saved Searches Yet
+                      </h4>
+                      <p className="text-gray-600 dark:text-gray-300 max-w-md mx-auto mb-6">
+                        Save your property searches to quickly access them later. Start browsing properties and save your favorite search criteria.
+                      </p>
+                      <Button 
+                        className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                        onClick={() => setActiveTab('browse')}
+                      >
+                        <Search className="h-4 w-4 mr-2" />
+                        Start Browsing Properties
+                      </Button>
                     </CardContent>
                   </Card>
                 )}
