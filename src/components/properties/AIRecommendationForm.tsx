@@ -70,6 +70,9 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
       ...formData,
       salary: parseFloat(formData.salary),
       family_size: parseInt(formData.family_size),
+      preferred_amenities: formData.preferred_amenities.map((amenity) =>
+        amenity.toLowerCase().replace(/ /g, '_')
+      ),
     });
   };
 
