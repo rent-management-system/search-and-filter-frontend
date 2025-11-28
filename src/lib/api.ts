@@ -128,25 +128,10 @@ export const propertyAPI = {
   
   getSavedSearches: async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      console.log('=== Fetching Saved Searches Debug ===');
-      console.log('Auth Token exists:', !!token);
-      console.log('Token first 50 chars:', token?.substring(0, 50));
-      console.log('Request URL:', '/saved-searches');
-      console.log('Base URL:', SEARCH_API_BASE);
-      
       const { data } = await searchApi.get('/saved-searches');
-      console.log('Saved searches response:', data);
-      console.log('Response is array:', Array.isArray(data));
-      console.log('Response length:', data?.length);
       return Array.isArray(data) ? data : [];
     } catch (error: any) {
-      console.error('=== Saved Searches Error ===');
-      console.error('Error object:', error);
-      console.error('Error response data:', error?.response?.data);
-      console.error('Error status:', error?.response?.status);
-      console.error('Request config:', error?.config);
-      console.error('Request headers:', error?.config?.headers);
+      console.error('Failed to fetch saved searches:', error?.response?.status, error?.response?.data?.message || error?.message);
       // Return empty array on error to prevent UI crashes
       return [];
     }

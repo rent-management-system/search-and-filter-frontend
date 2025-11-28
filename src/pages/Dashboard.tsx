@@ -13,6 +13,47 @@ import { decodeJwt } from '@/lib/jwt';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
+// Component to display saved property with full details
+const SavedPropertyCard = ({ searchData }: { searchData: any }) => {
+  const { data: propertyDetails, isLoading } = useQuery({
+    queryKey: ['saved-property', searchData.property_id],
+    queryFn: () => propertyAPI.getById(searchData.property_id),
+    enabled: !!searchData.property_id,
+    staleTime: 60_000,
+  });
+
+  if (isLoading) {
+    return (
+      <Card className="border-0 shadow-lg">
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!propertyDetails) {
+    return (
+      <Card className="border-0 shadow-lg">
+        <CardContent className="p-6">
+          <div className="text-center text-muted-foreground">
+            <Home className="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <p>Property details not available</p>
+            <p className="text-xs mt-1">Property ID: {searchData.property_id}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Use PropertyCard component with the fetched property details
+  return <PropertyCard property={propertyDetails} showContactOwner={true} />;
+};
+
 const Dashboard = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('browse');
@@ -551,7 +592,7 @@ const Dashboard = () => {
                   </div>
                 ) : savedSearches && savedSearches.length > 0 ? (
                   <motion.div 
-                    className="grid md:grid-cols-2 gap-6"
+                    className="space-y-6"
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
@@ -560,6 +601,16 @@ const Dashboard = () => {
                       const hasPropertyImage = search.photos && search.photos.length > 0;
                       const isPropertySave = search.property_id && search.property_id !== '00000000-0000-0000-0000-000000000000';
                       
+                      // If this is a saved property, use PropertyCard component
+                      if (isPropertySave) {
+                        return (
+                          <motion.div key={search.id || idx} variants={itemVariants}>
+                            <SavedPropertyCard searchData={search} />
+                          </motion.div>
+                        );
+                      }
+                      
+                      // Otherwise, show search criteria card
                       return (
                         <motion.div key={search.id || idx} variants={itemVariants}>
                           <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 group overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
