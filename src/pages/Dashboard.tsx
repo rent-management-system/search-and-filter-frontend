@@ -323,33 +323,33 @@ const Dashboard = () => {
         {/* Main Content Tabs */}
         <motion.div variants={itemVariants}>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className={`grid w-full max-w-3xl bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg ${
-              HAS_PROPERTY_SEARCH ? 'grid-cols-3' : 'grid-cols-1'
+            <TabsList className={`grid w-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg ${
+              HAS_PROPERTY_SEARCH ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1'
             }`}>
               {HAS_PROPERTY_SEARCH && (
                 <TabsTrigger 
                   value="browse" 
-                  className="gap-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
+                  className="gap-2 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 py-2"
                 >
                   <Search className="h-4 w-4" />
-                  {t('properties.browseAll') || 'Browse Properties'}
+                  <span className="truncate">{t('properties.browseAll') || 'Browse All'}</span>
                 </TabsTrigger>
               )}
               {HAS_PROPERTY_SEARCH && (
                 <TabsTrigger 
                   value="saved" 
-                  className="gap-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
+                  className="gap-2 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 py-2"
                 >
                   <Star className="h-4 w-4" />
-                  {t('dashboard.savedSearches') || 'Saved Searches'}
+                  <span className="truncate">{t('dashboard.savedSearches') || 'My Saved Searches'}</span>
                 </TabsTrigger>
               )}
               <TabsTrigger 
                 value="history" 
-                className="gap-3 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300"
+                className="gap-2 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white transition-all duration-300 py-2"
               >
                 <History className="h-4 w-4" />
-                {t('dashboard.recommendationHistory') || 'My Recommendations'}
+                <span className="truncate">{t('dashboard.recommendationHistory') || 'Recommendation History'}</span>
               </TabsTrigger>
             </TabsList>
 
@@ -591,27 +591,39 @@ const Dashboard = () => {
                     ))}
                   </div>
                 ) : savedSearches && savedSearches.length > 0 ? (
-                  <motion.div 
-                    className="space-y-6"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                  >
-                    {savedSearches.map((search: any, idx: number) => {
-                      const hasPropertyImage = search.photos && search.photos.length > 0;
-                      const isPropertySave = search.property_id && search.property_id !== '00000000-0000-0000-0000-000000000000';
-                      
-                      // If this is a saved property, use PropertyCard component
-                      if (isPropertySave) {
-                        return (
-                          <motion.div key={search.id || idx} variants={itemVariants}>
-                            <SavedPropertyCard searchData={search} />
-                          </motion.div>
-                        );
-                      }
-                      
-                      // Otherwise, show search criteria card
-                      return (
+                  <div className="space-y-6">
+                    {/* Saved Properties - Full Property Cards */}
+                    {savedSearches.filter((s: any) => s.property_id && s.property_id !== '00000000-0000-0000-0000-000000000000').length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Saved Properties</h4>
+                        <motion.div 
+                          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
+                        >
+                          {savedSearches.filter((s: any) => s.property_id && s.property_id !== '00000000-0000-0000-0000-000000000000').map((search: any, idx: number) => (
+                            <motion.div key={search.id || idx} variants={itemVariants}>
+                              <SavedPropertyCard searchData={search} />
+                            </motion.div>
+                          ))}
+                        </motion.div>
+                      </div>
+                    )}
+                    
+                    {/* Saved Search Criteria */}
+                    {savedSearches.filter((s: any) => !s.property_id || s.property_id === '00000000-0000-0000-0000-000000000000').length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Search Criteria</h4>
+                        <motion.div 
+                          className="grid md:grid-cols-2 gap-6"
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
+                        >
+                          {savedSearches.filter((s: any) => !s.property_id || s.property_id === '00000000-0000-0000-0000-000000000000').map((search: any, idx: number) => {
+                            const hasPropertyImage = search.photos && search.photos.length > 0;
+                            return (
                         <motion.div key={search.id || idx} variants={itemVariants}>
                           <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 group overflow-hidden bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
                             {/* Property Image Header (if available) */}
@@ -763,10 +775,12 @@ const Dashboard = () => {
                               </div>
                             </CardContent>
                           </Card>
+                            </motion.div>
+                          );})}
                         </motion.div>
-                      );
-                    })}
-                  </motion.div>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <Card className="border-0 shadow-lg text-center py-16">
                     <CardContent>
