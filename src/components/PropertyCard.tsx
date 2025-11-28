@@ -127,7 +127,7 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
     // Priority 5: Direct flat properties
     else {
       extractedContact = {
-        name: property.owner_name || property.ownerName || property.landlord_name || property.landlordName || 'Property Owner',
+        name: property.owner_name || property.ownerName || property.landlord_name || property.landlordName,
         email: property.owner_email || property.ownerEmail || property.landlord_email || property.landlordEmail,
         phone: property.owner_phone || property.ownerPhone || property.phone || property.contact_phone || property.contactPhone || property.landlord_phone || property.landlordPhone,
       };
@@ -713,14 +713,14 @@ export const PropertyCard = ({ property, showAIReason, onFeedback, showContactOw
           <div className="space-y-6 py-4">
             {/* Owner Information */}
             <div className="space-y-4">
-              {ownerContact.name && (
+              {(ownerContact.name || ownerContact.phone || ownerContact.email) && (
                 <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
                   <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">{t('property_card.owner_name')}</p>
-                    <p className="font-semibold text-foreground">{ownerContact.name}</p>
+                    <p className="font-semibold text-foreground">{ownerContact.name || 'Property Owner'}</p>
                   </div>
                 </div>
               )}
