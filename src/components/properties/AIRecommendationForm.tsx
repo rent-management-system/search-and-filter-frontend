@@ -37,11 +37,11 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
   const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    job_location: '',
+    job_school_location: '',
     salary: '',
     house_type: '',
     family_size: '1',
-    amenities: [] as string[],
+    preferred_amenities: [] as string[],
     language: 'en',
   });
 
@@ -59,9 +59,9 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
   const handleAmenityToggle = (amenity: string) => {
     setFormData((prev) => ({
       ...prev,
-      amenities: prev.amenities.includes(amenity)
-        ? prev.amenities.filter((a) => a !== amenity)
-        : [...prev.amenities, amenity],
+      preferred_amenities: prev.preferred_amenities.includes(amenity)
+        ? prev.preferred_amenities.filter((a) => a !== amenity)
+        : [...prev.preferred_amenities, amenity],
     }));
   };
 
@@ -73,7 +73,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
     });
   };
 
-  const canProceedStep1 = formData.job_location && formData.salary;
+  const canProceedStep1 = formData.job_school_location && formData.salary;
   const canProceedStep2 = formData.house_type && formData.family_size;
 
   return (
@@ -105,12 +105,12 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="job_location">{t('aiForm.jobLocation')}</Label>
+                <Label htmlFor="job_school_location">{t('aiForm.jobLocation')}</Label>
                 <Input
-                  id="job_location"
+                  id="job_school_location"
                   placeholder="e.g., Bole, Piassa, Merkato"
-                  value={formData.job_location}
-                  onChange={(e) => setFormData({ ...formData, job_location: e.target.value })}
+                  value={formData.job_school_location}
+                  onChange={(e) => setFormData({ ...formData, job_school_location: e.target.value })}
                 />
               </div>
 
@@ -209,7 +209,7 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
                     <div key={amenity} className="flex items-center space-x-2 p-2 rounded-md hover:bg-muted/50 transition-colors">
                       <Checkbox
                         id={amenity}
-                        checked={formData.amenities.includes(amenity)}
+                        checked={formData.preferred_amenities.includes(amenity)}
                         onCheckedChange={() => handleAmenityToggle(amenity)}
                       />
                       <label
@@ -230,11 +230,12 @@ export const AIRecommendationForm = ({ onSubmit, isLoading }: AIFormProps) => {
                   onValueChange={(value) => setFormData({ ...formData, language: value })}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue />
+                    <SelectValue placeholder={t('aiForm.placeholder_select_language')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="en">{t('english_option')}</SelectItem>
                     <SelectItem value="am">{t('amharic_option')}</SelectItem>
+                    <SelectItem value="or">{t('afan_oromo_option')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

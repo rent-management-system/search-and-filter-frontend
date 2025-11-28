@@ -136,6 +136,7 @@ const resources = {
           people: 'people',
         },
         placeholder_select_house_type: 'Select house type',
+        placeholder_select_language: 'Select language',
       },
       steps: {
         step1_title: 'Personal Info',
@@ -439,6 +440,7 @@ const resources = {
           people: 'ሰዎች',
         },
         placeholder_select_house_type: 'የቤት አይነት ይምረጡ',
+        placeholder_select_language: 'ቋንቋ ይምረጡ',
       },
       steps: {
         step1_title: 'የግል መረጃ',
@@ -742,6 +744,7 @@ const resources = {
           people: 'namoota',
         },
         placeholder_select_house_type: 'Gosa manaa filadhu',
+        placeholder_select_language: 'Afaan Filadhu',
       },
       steps: {
         step1_title: 'Odeeffannoo Dhuunfaa',
