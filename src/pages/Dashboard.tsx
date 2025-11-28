@@ -140,14 +140,23 @@ const Dashboard = () => {
     queryFn: recommendationAPI.getMine,
   });
 
-  // Saved searches
-  const { data: savedSearches, isLoading: savedSearchesLoading, error: savedSearchesError, refetch: refetchSavedSearches } = useQuery<any[]>({
+  // Saved searches with local state for optimistic updates
+  const { data: savedSearchesData, isLoading: savedSearchesLoading, error: savedSearchesError, refetch: refetchSavedSearches } = useQuery<any[]>({
     queryKey: ['dashboard-saved-searches'],
     queryFn: propertyAPI.getSavedSearches,
     enabled: HAS_PROPERTY_SEARCH,
     staleTime: 30_000,
     retry: 1,
   });
+  
+  const [savedSearches, setSavedSearches] = useState<any[]>([]);
+  
+  // Sync savedSearches with query data
+  useEffect(() => {
+    if (savedSearchesData) {
+      setSavedSearches(savedSearchesData);
+    }
+  }, [savedSearchesData]);
 
   // Handle saved searches error
   useEffect(() => {
@@ -160,16 +169,21 @@ const Dashboard = () => {
     }
   }, [savedSearchesError]);
 
-  // Handle delete saved search
+  // Handle delete saved search with optimistic UI update
   const handleDeleteSavedSearch = async (searchId: number) => {
+    // Immediately remove from UI
+    setSavedSearches(prev => prev.filter(search => search.id !== searchId));
+    toast.success('Saved search removed');
+    
+    // Call API in background
     try {
       await propertyAPI.deleteSavedSearch(searchId);
-      toast.success('Saved search removed successfully');
-      refetchSavedSearches();
     } catch (error: any) {
       console.error('Failed to delete saved search:', error);
-      toast.error('Failed to remove saved search', {
-        description: error?.response?.data?.message || error?.message
+      // On error, refetch to restore correct state
+      refetchSavedSearches();
+      toast.error('Failed to remove from server', {
+        description: 'The item was removed from view but may reappear on refresh'
       });
     }
   };
@@ -219,7 +233,7 @@ const Dashboard = () => {
                 {t('dashboard') || 'Dashboard'}
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
-                {t('dashboard_subtitle') || 'Discover your perfect home with AI-powered recommendations and browse available properties.'}
+                {t('dashboard.subtitle')}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -254,7 +268,7 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">AI Recommendations</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('dashboard.ai_recommendations')}</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stats.totalRecommendations}</p>
                 </div>
                 <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center">
@@ -268,7 +282,7 @@ const Dashboard = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Match Score</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('dashboard.match_score')}</p>
                   <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">
                     {stats.totalRecommendations > 0 ? '85%' : '—'}
                   </p>
@@ -856,10 +870,10 @@ const Dashboard = () => {
             <TabsContent value="history" className="space-y-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  Recommendation History
+                  {t('dashboard.recommendationHistory')}
                 </h3>
                 <Badge variant="secondary" className="text-sm">
-                  {recommendationsHistory?.length || 0} recommendations
+                  {t('dashboard.recommendations_found', { count: recommendationsHistory?.length || 0 })}
                 </Badge>
               </div>
 
@@ -897,26 +911,20 @@ const Dashboard = () => {
                               </div>
                               <div>
                                 <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                                  AI Recommendation #{rec.tenant_preference_id || idx + 1}
+                                  {t('dashboard.ai_recommendation_n', { n: rec.tenant_preference_id || idx + 1 })}
                                 </h4>
-                                <div className="flex items-center gap-4 mt-1 text-sm text-gray-600 dark:text-gray-300">
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="h-3.5 w-3.5" />
-                                    {new Date(rec.created_at).toLocaleDateString('en-US', {
-                                      year: 'numeric',
-                                      month: 'long',
-                                      day: 'numeric'
-                                    })}
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="h-3.5 w-3.5" />
-                                    {rec.properties?.length || 0} properties
-                                  </div>
+                                <div className="flex items-center gap-1 mt-1 text-sm text-gray-600 dark:text-gray-300">
+                                  <Calendar className="h-3.5 w-3.5" />
+                                  {new Date(rec.created_at).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })}
                                 </div>
                               </div>
                             </div>
                             <Button variant="ghost" className="gap-2 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20">
-                              View Details
+                              {t('dashboard.view_details')}
                               <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                             </Button>
                           </div>
